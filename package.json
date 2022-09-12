@@ -1,0 +1,19 @@
+{
+  "name": "deltaproperty",
+  "version": "1.0.0",
+  "description": "delta property backend",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/parnuphun/backend.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/parnuphun/backend/issues"
+  },
+  "homepage": "https://github.com/parnuphun/backend#readme"
+}
