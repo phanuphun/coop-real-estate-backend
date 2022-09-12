@@ -1,4 +1,3 @@
-const { async } = require('rxjs')
 const { Faq, FaqCategory, FaqHelpful } = require('../model/index.model')
 
 module.exports = {
