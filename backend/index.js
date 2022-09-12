@@ -15,8 +15,12 @@ app.use(express.static(path.join(__dirname, "/public")));
 //database
 const syncDatabase = require("./config/sync-resync");
 const db = require("./model/index.model");
-syncDatabase(false, db);
+db.sequelize.sync();
+// syncDatabase(false, db);
 
+app.get('/', (req, res) => {
+  res.send('welcome to real-estate api')
+})
 
 //app use property route
 app.use('/property', require('./routes/Property'))
@@ -39,8 +43,11 @@ app.use('/packages', require('./routes/Package'))
 //app use Our Services route
 app.use('/ourServices', require('./routes/OurService'))
 
+//app use line Route for webhook
 app.use('/line', require('./routes/LineNotify'))
 
+//app use detailReport route
+app.use('/detailReport', require('./routes/DetailReport'))
 
 app.listen(PORT || 3000, () => {
   console.log('server is running on port: '+PORT); 

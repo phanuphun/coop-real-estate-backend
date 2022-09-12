@@ -1,28 +1,25 @@
 module.exports = (sequelize, Sequelize) => {
-    const faqHelpful = sequelize.define(
-      "faqhelpful",
+    const detailReportProperty = sequelize.define(
+      "detail_report_property",
       {
-        faqHelpfulId: {
+        id: {
           type: Sequelize.INTEGER,
           autoIncrement: true,
           allowNull: false,
           primaryKey: true,
         },
-        userId: {
-          type: Sequelize.INTEGER,
+        name: {
+          type: Sequelize.STRING,
         },
-        faqId: {
-          type: Sequelize.INTEGER,
+        description: {
+          type: Sequelize.STRING
         },
-        helpful: {
-            type: Sequelize.BOOLEAN
-        }
       },
       {
         createdAt: false,
         updatedAt: false,
       }
     );
-    return faqHelpful;
+    return detailReportProperty;
   };
   

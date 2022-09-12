@@ -19,18 +19,6 @@ module.exports = (sequelize, Sequelize) => {
         },
         organization: {
             type: Sequelize.STRING
-        },
-        lineID: {
-            type: Sequelize.STRING
-        },
-        facebook: {
-            type: Sequelize.STRING
-        },
-        instagram: {
-            type: Sequelize.STRING
-        },
-        website: {
-            type: Sequelize.STRING
         }
     })
     return UserAccountDetail;

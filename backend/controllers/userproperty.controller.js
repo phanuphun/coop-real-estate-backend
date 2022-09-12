@@ -16,6 +16,8 @@ const {
   UserCompare,
   Users,
   Package,
+  UserRequirement,
+  UserAccountDetails,
 } = require("../model/index.model");
 const { Op } = require("sequelize");
 const {
@@ -40,18 +42,18 @@ const createFlexMessage = (prop) => {
     type: "bubble",
     header: {
       type: "box",
-      layout: "baseline",
+      layout: "vertical",
       contents: [
         {
           type: "text",
-          text: "NEW PROPERTY SUBMITTED",
+          text: "ประกาศขายอสังหาฯ",
           color: "#ffffff",
           weight: "bold",
           style: "normal",
         },
       ],
+      alignItems: "center",
       backgroundColor: "#1976d2",
-      alignItems: "center"
     },
     hero: {
       type: "image",
@@ -61,7 +63,7 @@ const createFlexMessage = (prop) => {
       aspectMode: "cover",
       action: {
         type: "uri",
-        uri: prop.link,
+        uri: data.link,
       },
       margin: "none",
       align: "center",
@@ -163,6 +165,17 @@ const createFlexMessage = (prop) => {
 const submitProp = async (req, res) => {
   try {
     const userId = res.locals.userId;
+
+    const userDetail = await UserAccountDetails.findOne({
+      where: {
+        userId: userId
+      },
+      attributes: ['email', 'phone']
+    })
+
+    if ((userDetail.email == null || userDetail.email == '') || (userDetail.phone == null || userDetail.phone == '')){
+      return res.send({ status: 4, message: 'ข้อมูลผู้ใช้งานของคุณยังไม่เพียงพอ กรุณาเพิ่มอิเมลและเบอร์โทร' })
+    }
 
     const dateNow = new Date();
 
@@ -320,36 +333,53 @@ const submitProp = async (req, res) => {
       })
       let zipCode = address.zip_code
       let subDist= address.name_th
-      let dist = address.District.name_th
-      let prov = address.District.Province.name_th
+      let dist = address.district.name_th
+      let prov = address.district.province.name_th
       let prop = {}
       prop.title = req.body.title
       prop.type = type.name_th
       prop.purpose = purpose.name_th
       prop.priceSale = Number(req.body.priceSale)
       prop.priceRent = Number(req.body.priceRent)
-      if (req.body.propType == 1) {
-        prop.price = `฿ ${prop.priceSale}`;
-      } else if (req.body.propType == 2) {
-        prop.price = `฿ ${prop.priceRent}/เดือน`;
-      } else if (req.body.propType == 3) {
-        prop.price = `฿ ${prop.priceSale}, ฿ ${res.priceRent}/เดือน`;
+      if (req.body.propFor == 1) {
+        prop.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(prop.priceSale)}`;
+      } else if (req.body.propFor == 2) {
+        prop.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(prop.priceRent)}/เดือน`;
+      } else if (req.body.propFor == 3) {
+        prop.price = `฿ ${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(prop.priceSale)}, ฿ ${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(prop.priceRent)}/เดือน`;
       }
       prop.address = `${req.body.houseNo}, ${subDist}, ${dist}, ${prov}, ${zipCode}`
       prop.link = `https://127.0.0.1:4200/properties/${propertyId.id}`
-      prop.gallery = `${NGROK}/images/${req.body.gallery[0]}`
+      prop.gallery = `${NGROK}/images/properties/${req.body.gallery[0]}`
       const flex = createFlexMessage(prop)
       const multiCast = { type: 'flex', altText: 'new property submitted', contents: flex }
 
        let user = await Users.findAll({
-          attributes: ['userId']
+          attributes: ['userId'],
+          where: {
+            id: { [Op.ne]: userId  }
+          },
+          include: [
+            {
+              model: UserRequirement,
+              attributes: ['id'],
+              where: {
+                purposeId: req.body.propFor,
+                typeId: req.body.propType,
+                subDistrictId: req.body.addressId
+              }
+            }
+          ]
         })
         let multiUser = []
         user.forEach((u) => {
           multiUser.push(u.userId)
         })
 
-      client.multicast(multiUser, multiCast)
+      if (multiUser.length > 0) {
+       client.multicast(multiUser, multiCast) 
+      //  console.log('notified success');
+      }
 
       return res.send({
         status: 1,
@@ -375,7 +405,7 @@ const userRemoveProp = async (req, res) => {
 
     await gallery.forEach((item) => {
       try {
-        let absolutePath = path.resolve("public/images/" + item.path);
+        let absolutePath = path.resolve("public/images/properties/" + item.path);
         if (fs.existsSync(absolutePath)) {
           fs.unlinkSync(String(absolutePath));
           console.log("delete " + absolutePath);
@@ -422,27 +452,26 @@ const getUserProperties = async (req, res) => {
     let sort = "";
     if (order) {
       if (order == "Newest(Default)") {
-        sort = "order by createdAt desc";
+        sort = "order by user_sub_props.createdAt desc";
       } else if (order == "Oldest") {
-        sort = "order by createdAt asc";
-      } else if (order == "Price Sale(Low to High)") {
-        sort = "order by priceSale asc";
+        sort = "order by user_sub_props.createdAt asc";
+      } else if (order == "PriceSale(LowtoHigh)") {
+        sort = "order by user_sub_props.priceSale asc";
         propFor = 1;
-      } else if (order == "Price Sale(High to Low)") {
-        sort = "order by priceSale desc";
+      } else if (order == "PriceSale(HightoLow)") {
+        sort = "order by user_sub_props.priceSale desc";
         propFor = 1;
-      } else if (order == "Price Rent(Low to High)") {
-        sort = "order by priceRent asc";
+      } else if (order == "PriceRent(LowtoHigh)") {
+        sort = "order by user_sub_props.priceRent asc";
         propFor = 2;
-      } else if (order == "Price Rent(High to Low)") {
-        sort = "order by priceRent desc";
+      } else if (order == "PriceRent(HightoLow") {
+        sort = "order by user_sub_props.priceRent desc";
         propFor = 2;
       }
     } else {
-      sort = "order by createdAt desc";
+      sort = "order by user_sub_props.createdAt desc";
     }
     // console.log(order);
-
     const count = await sequelize.query(`
         select count(*) as length
 
@@ -454,6 +483,7 @@ const getUserProperties = async (req, res) => {
         inner join districts on subdistricts.DistrictId = districts.id 
         inner join provinces on districts.ProvinceId = provinces.id
         inner join user_sub_prop_additionals addi on user_sub_props.id = addi.propertyId
+        inner join users on users.id = user_sub_props.userId
 
         where (((user_sub_props.lat between ${bounds.bottom} and ${bounds.top}) and (user_sub_props.lng between ${bounds.left} and ${bounds.right}))
               or ((${bounds.bottom} is null)
@@ -509,6 +539,8 @@ const getUserProperties = async (req, res) => {
             or (addi.yearBuilt between ${yearBuilt.from} and ${yearBuilt.to})  
             or (${yearBuilt.from} is null and ${yearBuilt.to} is null))
         
+        and ((users.packageExpire > cast(now() as date ) and users.packageId != 1) or users.packageId = 1)
+
         ${sort} limit ${req.params.perPage} offset ${req.params.page}
       `);
 
@@ -559,6 +591,7 @@ const getUserProperties = async (req, res) => {
         inner join districts on subdistricts.DistrictId = districts.id 
         inner join provinces on districts.ProvinceId = provinces.id
         inner join user_sub_prop_additionals addi on user_sub_props.id = addi.propertyId
+        inner join users on users.id = user_sub_props.userId
 
         where (((user_sub_props.lat between ${bounds.bottom} and ${bounds.top}) and (user_sub_props.lng between ${bounds.left} and ${bounds.right}))
               or ((${bounds.bottom} is null)
@@ -614,6 +647,8 @@ const getUserProperties = async (req, res) => {
             or (addi.yearBuilt between ${yearBuilt.from} and ${yearBuilt.to})  
             or (${yearBuilt.from} is null and ${yearBuilt.to} is null))
         
+        and ((users.packageExpire > cast(now() as date ) and users.packageId != 1) or users.packageId = 1)
+        
         ${sort} limit ${req.params.perPage} offset ${req.params.page}
         `
     );
@@ -635,6 +670,7 @@ const getUserProperties = async (req, res) => {
         inner join districts on subdistricts.DistrictId = districts.id 
         inner join provinces on districts.ProvinceId = provinces.id
         inner join user_sub_prop_additionals  on user_sub_props.id = user_sub_prop_additionals.propertyId
+        inner join users on users.id = user_sub_props.userId
 
         where (((user_sub_props.lat between ${bounds.bottom} and ${bounds.top}) and (user_sub_props.lng between ${bounds.left} and ${bounds.right}))
               or ((${bounds.bottom} is null)
@@ -690,6 +726,7 @@ const getUserProperties = async (req, res) => {
             or (user_sub_prop_additionals.yearBuilt between ${yearBuilt.from} and ${yearBuilt.to})  
             or (${yearBuilt.from} is null and ${yearBuilt.to} is null))
         
+        and ((users.packageExpire > cast(now() as date ) and users.packageId != 1) or users.packageId = 1)
         ${sort} 
         
         `
@@ -714,7 +751,7 @@ const getUserProperties = async (req, res) => {
     response.forEach((res) => {
       propGallery.forEach((gallery) => {
         if (res.id == gallery.propertyId) {
-          res.gallery.push(`${HOST}/images/` + gallery.path);
+          res.gallery.push(`${HOST}/images/properties/` + gallery.path);
         }
       });
     });
@@ -741,7 +778,7 @@ const getUserProperties = async (req, res) => {
     icon.forEach((item) => {
       propGalleryMarker.forEach((gallery) => {
         if (item.id == gallery.propertyId) {
-          item.gallery.push(`${HOST}/images/` + gallery.path);
+          item.gallery.push(`${HOST}/images/properties/` + gallery.path);
         }
       });
     });
@@ -762,6 +799,9 @@ const getUserProperties = async (req, res) => {
 };
 const getUserPropertyById = async (req, res) => {
   try {
+
+
+
     let response = await sequelize.query(
       `select user_sub_props.id as id,
               user_sub_props.title as title,
@@ -800,7 +840,10 @@ const getUserPropertyById = async (req, res) => {
               addi.garages as garages,
               addi.area as area,      
               addi.floor as floor, 
-              addi.yearBuilt as yearBuilt
+              addi.yearBuilt as yearBuilt,
+
+              users.packageExpire as packageExpire,
+              users.packageId as packageId
 
         from user_sub_props
 
@@ -810,11 +853,19 @@ const getUserPropertyById = async (req, res) => {
         inner join districts on subdistricts.DistrictId = districts.id 
         inner join provinces on districts.ProvinceId = provinces.id
         inner join user_sub_prop_additionals addi on user_sub_props.id = addi.propertyId
+        inner join users on users.id = user_sub_props.userId
               
          where user_sub_props.id = ${req.params.id}     
       `
     );
-    const addiId = response[0][0].additionalId;
+    response = response[0][0]
+    
+    let dateNow = new Date();
+    if (dateNow > response.packageExpire && response.packageId != 1){
+      return res.send({ status: 2 }) // status 2 is for user package is expired, can not watch this properrty
+    }
+    
+    const addiId = response.additionalId;
 
     let featuresList = [];
     let featuresId = await sequelize.query(
@@ -833,8 +884,6 @@ const getUserPropertyById = async (req, res) => {
       where: { id: { [Op.in]: featuresList } },
     });
 
-    response = response[0][0];
-
     response.features = [];
     features.forEach((feat) => {
       feat.selected = true;
@@ -850,7 +899,7 @@ const getUserPropertyById = async (req, res) => {
 
     response.gallery = [];
     propGallery.forEach((gallery) => {
-      response.gallery.push(`${HOST}/images/${gallery.path}`);
+      response.gallery.push(`${HOST}/images/properties/${gallery.path}`);
     });
 
     response.gallery = response.gallery.reverse();
@@ -865,11 +914,7 @@ const getUserPropertyById = async (req, res) => {
 
                detail.email as email,
                detail.phone as phone,
-               detail.organization as organization,
-               detail.facebook as facebook,
-               detail.lineID as lineID,
-               detail.instagram as instagram,
-               detail.website as website
+               detail.organization as organization
 
         from user_sub_props
 
@@ -882,9 +927,9 @@ const getUserPropertyById = async (req, res) => {
     );
     agent = agent[0][0];
     if (agent.picture.length < 20) {
-      agent.picture = `${HOST}/images/${agent.picture}`;
+      agent.picture = `${HOST}/images/avatar/${agent.picture}`;
     }
-    res.send({ property: response, agent: agent });
+    res.send({ status: 1,  property: response, agent: agent });// status 1 is for user package not expire yet or free package
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -907,29 +952,29 @@ const getUserPropertiesHome = async (req, res) => {
       yearBuilt,
       order,
     } = req.body;
-    console.log(req.body);
+    // console.log(req.body);
 
     let sort = "";
     if (order) {
       if (order == "Newest(Default)") {
-        sort = "order by createdAt desc";
+        sort = "order by user_sub_props.createdAt desc";
       } else if (order == "Oldest") {
-        sort = "order by createdAt asc";
-      } else if (order == "Price Sale(Low to High)") {
+        sort = "order by user_sub_props.createdAt asc";
+      } else if (order == "PriceSale(LowtoHigh)") {
         sort = "order by priceSale asc";
         propFor = 1;
-      } else if (order == "Price Sale(High to Low)") {
-        sort = "order by priceSale desc";
+      } else if (order == "PriceSale(HightoLow)") {
+        sort = "order by user_sub_props.priceSale desc";
         propFor = 1;
-      } else if (order == "Price Rent(Low to High)") {
-        sort = "order by priceRent asc";
+      } else if (order == "PriceRent(LowtoHigh)") {
+        sort = "order by user_sub_props.priceRent asc";
         propFor = 2;
-      } else if (order == "Price Rent(High to Low)") {
-        sort = "order by priceRent desc";
+      } else if (order == "PriceRent(HightoLow") {
+        sort = "order by user_sub_props.priceRent desc";
         propFor = 2;
       }
     } else {
-      sort = "order by createdAt desc";
+      sort = "order by user_sub_props.createdAt desc";
     }
     // console.log(order);
 
@@ -944,6 +989,7 @@ const getUserPropertiesHome = async (req, res) => {
         inner join districts on subdistricts.DistrictId = districts.id 
         inner join provinces on districts.ProvinceId = provinces.id
         inner join user_sub_prop_additionals addi on addi.propertyId = user_sub_props.id
+        inner join users on users.id = user_sub_props.userId
 
         where (propType = ${propType} or ${propType} is null)
 
@@ -993,6 +1039,9 @@ const getUserPropertiesHome = async (req, res) => {
             or (addi.yearBuilt between ${yearBuilt.from} and ${yearBuilt.to})  
             or (${yearBuilt.from} is null and ${yearBuilt.to} is null))
         
+        and ((users.packageExpire > cast(now() as date ) and users.packageId != 1) or users.packageId = 1)
+
+            
         ${sort} limit ${req.params.perPage} offset ${req.params.page}
       `);
 
@@ -1043,6 +1092,7 @@ const getUserPropertiesHome = async (req, res) => {
         inner join districts on subdistricts.DistrictId = districts.id 
         inner join provinces on districts.ProvinceId = provinces.id
         inner join user_sub_prop_additionals addi on addi.propertyId = user_sub_props.id
+        inner join users on users.id = user_sub_props.userId
 
         where (propType = ${propType} or ${propType} is null)
 
@@ -1092,6 +1142,8 @@ const getUserPropertiesHome = async (req, res) => {
             or (addi.yearBuilt between ${yearBuilt.from} and ${yearBuilt.to})  
             or (${yearBuilt.from} is null and ${yearBuilt.to} is null))
         
+        and ((users.packageExpire > cast(now() as date ) and users.packageId != 1) or users.packageId = 1)
+
         ${sort} limit ${req.params.perPage} offset ${req.params.page}
         `
     );
@@ -1115,7 +1167,7 @@ const getUserPropertiesHome = async (req, res) => {
     response.forEach((res) => {
       propGallery.forEach((gallery) => {
         if (res.id == gallery.propertyId) {
-          res.gallery.push(`${HOST}/images/` + gallery.path);
+          res.gallery.push(`${HOST}/images/properties/` + gallery.path);
         }
       });
     });
@@ -1147,29 +1199,29 @@ const getPropertiesbyAgent = async (req, res) => {
       yearBuilt,
       order,
     } = req.body;
-    console.log(req.body);
+    // console.log(req.body);
 
     let sort = "";
     if (order) {
       if (order == "Newest(Default)") {
-        sort = "order by createdAt desc";
+        sort = "order by user_sub_props.createdAt desc";
       } else if (order == "Oldest") {
-        sort = "order by createdAt asc";
-      } else if (order == "Price Sale(Low to High)") {
-        sort = "order by priceSale asc";
+        sort = "order by user_sub_props.createdAt asc";
+      } else if (order == "PriceSale(LowtoHigh)") {
+        sort = "order by user_sub_props.priceSale asc";
         propFor = 1;
-      } else if (order == "Price Sale(High to Low)") {
-        sort = "order by priceSale desc";
+      } else if (order == "PriceSale(HightoLow)") {
+        sort = "order by user_sub_props.priceSale desc";
         propFor = 1;
-      } else if (order == "Price Rent(Low to High)") {
-        sort = "order by priceRent asc";
+      } else if (order == "PriceRent(LowtoHigh)") {
+        sort = "order by user_sub_props.priceRent asc";
         propFor = 2;
-      } else if (order == "Price Rent(High to Low)") {
-        sort = "order by priceRent desc";
+      } else if (order == "PriceRent(HightoLow") {
+        sort = "order by user_sub_props.priceRent desc";
         propFor = 2;
       }
     } else {
-      sort = "order by createdAt desc";
+      sort = "order by user_sub_props.createdAt desc";
     }
     // console.log(order);
 
@@ -1184,6 +1236,7 @@ const getPropertiesbyAgent = async (req, res) => {
         inner join districts on subdistricts.DistrictId = districts.id 
         inner join provinces on districts.ProvinceId = provinces.id
         inner join user_sub_prop_additionals addi on user_sub_props.id = addi.propertyId
+        inner join users on users.id = user_sub_props.userId
 
         where (user_sub_props.userId = ${req.params.id})
 
@@ -1234,6 +1287,8 @@ const getPropertiesbyAgent = async (req, res) => {
             or (addi.yearBuilt <= ${yearBuilt.to} and ${yearBuilt.from} is null)
             or (addi.yearBuilt between ${yearBuilt.from} and ${yearBuilt.to})  
             or (${yearBuilt.from} is null and ${yearBuilt.to} is null))
+        
+        and ((users.packageExpire > cast(now() as date ) and users.packageId != 1) or users.packageId = 1)
         
         ${sort} limit ${req.params.perPage} offset ${req.params.page}
       `);
@@ -1285,6 +1340,7 @@ const getPropertiesbyAgent = async (req, res) => {
         inner join districts on subdistricts.DistrictId = districts.id 
         inner join provinces on districts.ProvinceId = provinces.id
         inner join user_sub_prop_additionals addi on user_sub_props.id = addi.propertyId
+        inner join users on users.id = user_sub_props.userId
 
         where (user_sub_props.userId = ${req.params.id})
 
@@ -1336,6 +1392,8 @@ const getPropertiesbyAgent = async (req, res) => {
             or (addi.yearBuilt between ${yearBuilt.from} and ${yearBuilt.to})  
             or (${yearBuilt.from} is null and ${yearBuilt.to} is null))
         
+        and ((users.packageExpire > cast(now() as date ) and users.packageId != 1) or users.packageId = 1)
+
         ${sort} limit ${req.params.perPage} offset ${req.params.page}
         `
     );
@@ -1359,7 +1417,7 @@ const getPropertiesbyAgent = async (req, res) => {
     response.forEach((res) => {
       propGallery.forEach((gallery) => {
         if (res.id == gallery.propertyId) {
-          res.gallery.push(`${HOST}/images/` + gallery.path);
+          res.gallery.push(`${HOST}/images/properties/` + gallery.path);
         }
       });
     });
@@ -1398,7 +1456,7 @@ const getMyproperties = async (req, res) => {
       temp.id = prop.id;
       temp.title = prop.title;
       temp.published = prop.createdAt;
-      temp.image = `${HOST}/images/${
+      temp.image = `${HOST}/images/properties/${
         prop.user_sub_prop_galleries[prop.user_sub_prop_galleries.length - 1]
           .path
       }`;
@@ -1438,7 +1496,7 @@ const getMyFavorites = async (req, res) => {
       (temp.id = fav.propertyId),
         (temp.title = fav.user_sub_prop.title),
         (temp.published = fav.user_sub_prop.createdAt);
-      temp.image = `${HOST}/images/${
+      temp.image = `${HOST}/images/properties/${
         fav.user_sub_prop.user_sub_prop_galleries[
           fav.user_sub_prop.user_sub_prop_galleries.length - 1
         ].path
@@ -1529,7 +1587,7 @@ const getEditPropertyById = async (req, res) => {
 
     let gallery = [];
     property.user_sub_prop_galleries.forEach((res) => {
-      gallery.push(`${HOST}/images/${res.path}`);
+      gallery.push(`${HOST}/images/properties/${res.path}`);
     });
 
     let data = {};
@@ -1543,9 +1601,9 @@ const getEditPropertyById = async (req, res) => {
     data.lat = property.lat;
     data.lng = property.lng;
     data.houseNo = property.houseNo;
-    data.subDistrict = property.SubDistrict.id;
-    data.district = property.SubDistrict.District["id"];
-    data.province = property.SubDistrict.District.Province["id"];
+    data.subDistrict = property.subdistrict.id;
+    data.district = property.subdistrict.district["id"];
+    data.province = property.subdistrict.district.province["id"];
     data.bedrooms = property.user_sub_prop_additional.bedrooms;
     data.bathrooms = property.user_sub_prop_additional.bathrooms;
     data.garages = property.user_sub_prop_additional.garages;
@@ -1568,7 +1626,7 @@ const updateUserProp = async (req, res) => {
     if (req.body.delImage) {
       if (req.body.delImage.legnth > 1) {
         req.body.delImage.forEach((del) => {
-          let absolutePath = path.resolve("public/images/" + del);
+          let absolutePath = path.resolve("public/images/properties/" + del);
           if (fs.existsSync(absolutePath)) {
             fs.unlinkSync(absolutePath);
           }
@@ -1579,7 +1637,7 @@ const updateUserProp = async (req, res) => {
           },
         });
       } else {
-        let absolutePath = path.resolve("public/images/" + req.body.delImage);
+        let absolutePath = path.resolve("public/images/properties/" + req.body.delImage);
         if (fs.existsSync(absolutePath)) {
           fs.unlinkSync(absolutePath);
         }
@@ -1755,8 +1813,11 @@ const getUserCompare = async (req, res) => {
       order: [["id", "desc"]],
     });
 
+    
+
     let data = [];
     myCompare.forEach((compare) => {
+      // console.log(compare);
       let temp = {};
       temp.id = compare.propertyId;
       temp.title = compare.user_sub_prop.title;
@@ -1780,23 +1841,23 @@ const getUserCompare = async (req, res) => {
           temp.features.push(feat.featuresId);
         }
       );
-      temp.zipcode = compare.user_sub_prop.SubDistrict.zip_code;
-      temp.subDist_nameth = compare.user_sub_prop.SubDistrict.name_th;
-      temp.subDist_nameen = compare.user_sub_prop.SubDistrict.name_en;
-      temp.dist_nameth = compare.user_sub_prop.SubDistrict.District.name_th;
-      temp.dist_nameen = compare.user_sub_prop.SubDistrict.District.name_en;
+      temp.zipcode = compare.user_sub_prop.subdistrict.zip_code;
+      temp.subDist_nameth = compare.user_sub_prop.subdistrict.name_th;
+      temp.subDist_nameen = compare.user_sub_prop.subdistrict.name_en;
+      temp.dist_nameth = compare.user_sub_prop.subdistrict.district.name_th;
+      temp.dist_nameen = compare.user_sub_prop.subdistrict.district.name_en;
       temp.prov_nameth =
-        compare.user_sub_prop.SubDistrict.District.Province.name_th;
+        compare.user_sub_prop.subdistrict.district.province.name_th;
       temp.prov_nameen =
-        compare.user_sub_prop.SubDistrict.District.Province.name_en;
+        compare.user_sub_prop.subdistrict.district.province.name_en;
       temp.purpose_nameth = compare.user_sub_prop.property_purpose.name_th;
       temp.purpose_nameen = compare.user_sub_prop.property_purpose.name_en;
       temp.type_nameth = compare.user_sub_prop.property_type.name_th;
       temp.type_nameen = compare.user_sub_prop.property_type.name_en;
-      temp.gallery = `${HOST}/images/${compare.user_sub_prop.user_sub_prop_galleries[0].path}`;
+      temp.gallery = `${HOST}/images/properties/${compare.user_sub_prop.user_sub_prop_galleries[0].path}`;
       data.push(temp);
     });
-
+    // res.send(myCompare)
     res.send({ data: data });
   } catch (err) {
     res.status(500).send(err.message);
@@ -1834,6 +1895,7 @@ const clearAllCompare = async (req, res) => {
     res.status(500).send(err.message);
   }
 };
+
 
 module.exports = {
   getUserProperties: getUserProperties,

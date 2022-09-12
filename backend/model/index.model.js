@@ -1,5 +1,4 @@
 
-const { devNull } = require('os');
 const Sequelize = require('sequelize')
 const { HOST, PORT, USER, PASSWORD, DATABASE } = require('../config/config')
   
@@ -10,13 +9,25 @@ const sequelize = new Sequelize(
     PASSWORD, {
   
         dialect: 'mysql',
-        host: 'localhost',
+        host: '127.0.0.1',
         charset: 'utf8',
         collate: 'utf8_general_ci',
         timezone:"+07:00"
     }
 );
-
+// const sequelize = new Sequelize(
+//     'test',
+//     'khem',
+//     'DeltasofPassword', {
+  
+//         dialect: 'mysql',
+//         host: '127.0.0.1',
+//         charset: 'utf8',
+//         collate: 'utf8_general_ci',
+//         timezone:"+07:00"
+//     }
+// );
+ 
 const db = {}
 
 db.Sequelize = Sequelize;
@@ -50,13 +61,18 @@ db.UserFavorite = require('./schema/Users/UserFavorite')(sequelize, Sequelize)
 db.UserCompare = require('./schema/Users/UserCompare')(sequelize, Sequelize)
 db.UserRequirement = require('./schema/Users/UserRequirement')(sequelize, Sequelize)
 db.UserReportProperty = require('./schema/Users/UserReportProperty')(sequelize, Sequelize)
+db.UserReportUser = require('./schema/Users/UserReportUser')(sequelize, Sequelize)
+db.MoneyTransfer = require('./schema/Users/MoneyTransfer')(sequelize, Sequelize)
 
 //package
 db.Package = require('./schema/Packages/Package')(sequelize, Sequelize)
 db.SubscriptionPeriod = require('./schema/Packages/SubscriptionPeriod')(sequelize, Sequelize)
 
+//detail report user and detail report property
+db.DetailReportUser = require('./schema/DetailReport/detailReportUser')(sequelize, Sequelize)
+db.DetailReportProperty = require('./schema/DetailReport/detailReportProperty')(sequelize, Sequelize)
 //our services
-db.OurService = require('./schema/ourServices/ourService')(sequelize, Sequelize)
+db.OurService = require('./schema/ourServices/ourService')(sequelize, Sequelize) 
 
 //about helpers 
 db.Faq = require('./schema/Faq/faq')(sequelize, Sequelize)
@@ -95,9 +111,31 @@ db.Users.hasMany(db.UserReportProperty, { foreignKey: 'userId' })
 db.UserReportProperty.belongsTo(db.Users, { foreignKey: 'userId' })
 db.UserSubProp.hasMany(db.UserReportProperty, { foreignKey: 'propertyId' })
 db.UserReportProperty.belongsTo(db.UserSubProp, { foreignKey: 'propertyId' })
+db.DetailReportProperty.hasMany(db.UserReportProperty, { foreignKey: 'detailReportId' })
+db.UserReportProperty.belongsTo(db.DetailReportProperty, { foreignKey: 'detailReportId' })
 
 db.Users.hasMany(db.UserRequirement, { foreignKey: 'userId' })
 db.UserRequirement.belongsTo(db.Users, { foreignKey: 'userId' })
+db.PropertyPurpose.hasMany(db.UserRequirement, { foreignKey: 'purposeId' })
+db.UserRequirement.belongsTo(db.PropertyPurpose, { foreignKey: 'purposeId' })
+db.PropertyType.hasMany(db.UserRequirement, { foreignKey: 'typeId' })
+db.UserRequirement.belongsTo(db.PropertyType, { foreignKey: 'typeId' })
+db.SubDistrict.hasMany(db.UserRequirement, { foreignKey: 'subDistrictId' })
+db.UserRequirement.belongsTo(db.SubDistrict, { foreignKey: 'subDistrictId' }) 
+
+db.Users.hasMany(db.UserReportUser,{  foreignKey: 'userId'  })
+db.UserReportUser.belongsTo(db.Users, { foreignKey: 'userId' })
+db.Users.hasMany(db.UserReportUser, { foreignKey: 'userReportedId' })
+db.UserReportUser.belongsTo(db.Users, { foreignKey: 'userReportedId' })
+db.DetailReportUser.hasMany(db.UserReportUser, { foreignKey: 'detailReportId'  })
+db.UserReportUser.belongsTo(db.DetailReportUser, { foreignKey: 'detailReportId'  })
+
+db.Users.hasMany(db.MoneyTransfer, { foreignKey: 'userId' })
+db.MoneyTransfer.belongsTo(db.Users, { foreignKey: 'userId' })
+db.Package.hasMany(db.MoneyTransfer, {  foreignKey: 'packageId'})
+db.MoneyTransfer.belongsTo(db.Package, {  foreignKey: 'packageId'})
+db.SubscriptionPeriod.hasMany(db.MoneyTransfer, { foreignKey: 'periodId' })
+db.MoneyTransfer.belongsTo(db.SubscriptionPeriod, { foreignKey: 'periodId' })
 
 
 //user property relations
@@ -130,5 +168,6 @@ db.Provinces.hasMany(db.District);
 db.District.belongsTo(db.Provinces); 
 db.District.hasMany(db.SubDistrict);
 db.SubDistrict.belongsTo(db.District);
+
 
 module.exports = db

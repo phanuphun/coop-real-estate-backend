@@ -14,10 +14,13 @@ module.exports = (sequelize, Sequelize) => {
       description: {
         type: Sequelize.STRING
       },
-      priceM: {
+      price1M: {
         type: Sequelize.DOUBLE
       },
-      priceY: {
+      price3M: {
+        type: Sequelize.DOUBLE
+      },
+      price6M: {
         type: Sequelize.DOUBLE
       },
       propertyLimit: {

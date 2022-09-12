@@ -1,6 +1,6 @@
 module.exports = (sequelize, Sequelize) => {
   const Roles = sequelize.define(
-    "Roles",
+    "roles",
     {
       roleId: {
         type: Sequelize.INTEGER,

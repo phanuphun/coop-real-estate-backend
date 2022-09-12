@@ -103,7 +103,7 @@ const webhook = async (req, res) => {
         prop.forEach((res) => {
           propGallery.forEach((gallery) => {
             if (res.id == gallery.propertyId) {
-              res.gallery.push(`${NGROK}/images/` + gallery.path);
+              res.gallery.push(`${NGROK}/images/properties/` + gallery.path);
             }
           });
         });
@@ -118,21 +118,27 @@ const webhook = async (req, res) => {
           res.link = `https://127.0.0.1:4200/properties/${res.id}`;
 
           if (res.purpose_id == 1) {
-            res.price = `฿ ${res.priceSale}`;
+            res.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceSale)}`;
           } else if (res.purpose_id == 2) {
-            res.price = `฿ ${res.priceRent}/เดือน`;
+            res.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceRent)}/เดือน`;
           } else if (res.purpose_id == 3) {
-            res.price = `฿ ${res.priceSale}, ฿ ${res.priceRent}/เดือน`;
+            res.price = `฿ ${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceSale)}, ฿ ${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceRent)}/เดือน`;
           }
           const temp = createFlexMessage(res);
           contents.push(temp);
         });
         const carousel = { type: "carousel", contents: contents };
-        const response = {
+        const response = [
+          {
+            type: 'text',
+            text: 'รายการอสังหาฯใหม่ล่าสุด' 
+          },
+          {
           type: "flex",
           altText: "newest",
           contents: carousel,
-        };
+          }
+        ] ;
         return res.send(client.replyMessage(event.replyToken, response));
       } else if (
         message.text === "newest rent" ||
@@ -204,7 +210,7 @@ const webhook = async (req, res) => {
         prop.forEach((res) => {
           propGallery.forEach((gallery) => {
             if (res.id == gallery.propertyId) {
-              res.gallery.push(`${NGROK}/images/` + gallery.path);
+              res.gallery.push(`${NGROK}/images/properties/` + gallery.path);
             }
           });
         });
@@ -218,17 +224,23 @@ const webhook = async (req, res) => {
           res.address = `${res.houseNo}, ${res.subDist_name}, ${res.dist_name}, ${res.prov_name}, ${res.zipcode}`;
           res.link = `https://127.0.0.1:4200/properties/${res.id}`;
 
-          res.price = `฿ ${res.priceRent}/เดือน`;
+          res.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceRent)}/เดือน`;
 
           const temp = createFlexMessage(res);
           contents.push(temp);
         });
         const carousel = { type: "carousel", contents: contents };
-        const response = {
+        const response = [
+          {
+            type: 'text',
+            text: 'รายการอสังหาฯสำหรับเช่าใหม่ล่าสุด'
+          },
+          {
           type: "flex",
           altText: "newest rent",
           contents: carousel,
-        };
+        }
+        ] ;
         return res.send(client.replyMessage(event.replyToken, response));
       } else if (
         message.text === "newest sale" ||
@@ -300,7 +312,7 @@ const webhook = async (req, res) => {
         prop.forEach((res) => {
           propGallery.forEach((gallery) => {
             if (res.id == gallery.propertyId) {
-              res.gallery.push(`${NGROK}/images/` + gallery.path);
+              res.gallery.push(`${NGROK}/images/properties/` + gallery.path);
             }
           });
         });
@@ -314,26 +326,35 @@ const webhook = async (req, res) => {
           res.address = `${res.houseNo}, ${res.subDist_name}, ${res.dist_name}, ${res.prov_name}, ${res.zipcode}`;
           res.link = `https://127.0.0.1:4200/properties/${res.id}`;
 
-          res.price = `฿ ${res.priceSale}`;
+          res.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceSale)}`;
 
           const temp = createFlexMessage(res);
           contents.push(temp);
         });
         const carousel = { type: "carousel", contents: contents };
-        const response = {
+        const response = [
+          {
+            type: 'text',
+            text: 'รายการอสังหาฯสำหรับขายใหม่ล่าสุด'
+          },
+          {
           type: "flex",
           altText: "newest sale",
           contents: carousel,
-        };
+        }
+        ] ;
         return res.send(client.replyMessage(event.replyToken, response));
-      } else if (message.text === "my properties" || message.text === "อสังหาของฉัน") {
+      } else if (
+        message.text === "my properties" ||
+        message.text === "อสังหาของฉัน"
+      ) {
         const userId = event.source.userId;
         // console.log(event.source.userId);
         const existUser = await Users.findOne({
           where: {
             userId: userId,
           },
-          attributes:['id']
+          attributes: ["id"],
         });
         // console.log(existUser.id);
         if (!existUser) {
@@ -387,29 +408,29 @@ const webhook = async (req, res) => {
   
                     order by createdAt desc limit 10   `
           );
-  
+
           prop = prop[0];
           let propertyId = [];
           prop.forEach((res) => {
             res.gallery = [];
             propertyId.push(res.id);
           });
-  
+
           let propGallery = await UserSubPropGallery.findAll({
             attributes: ["path", "propertyId"],
             where: {
               propertyId: { [Op.in]: propertyId },
             },
           });
-  
+
           prop.forEach((res) => {
             propGallery.forEach((gallery) => {
               if (res.id == gallery.propertyId) {
-                res.gallery.push(`${NGROK}/images/` + gallery.path);
+                res.gallery.push(`${NGROK}/images/properties/` + gallery.path);
               }
             });
           });
-  
+
           prop.forEach((res) => {
             res.gallery = res.gallery.reverse();
             res.gallery = res.gallery[0];
@@ -418,34 +439,41 @@ const webhook = async (req, res) => {
           prop.forEach((res) => {
             res.address = `${res.houseNo}, ${res.subDist_name}, ${res.dist_name}, ${res.prov_name}, ${res.zipcode}`;
             res.link = `https://127.0.0.1:4200/properties/${res.id}`;
-  
+
             if (res.purpose_id == 1) {
-              res.price = `฿ ${res.priceSale}`;
+              res.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceSale)}`;
             } else if (res.purpose_id == 2) {
-              res.price = `฿ ${res.priceRent}/เดือน`;
+              res.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceRent)}/เดือน`;
             } else if (res.purpose_id == 3) {
-              res.price = `฿ ${res.priceSale}, ฿ ${res.priceRent}/เดือน`;
+              res.price = `฿ ${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceSale)}, ฿ ${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceRent)}/เดือน`;
             }
-  
+
             const temp = createFlexMessage(res);
             contents.push(temp);
           });
           const carousel = { type: "carousel", contents: contents };
-          const response = {
+          const response = [{
+            type: 'text',
+            text: 'รายการอสังหาฯของคุณ'
+          },
+            {
             type: "flex",
             altText: "newest rent",
             contents: carousel,
-          };
+          }];
           return res.send(client.replyMessage(event.replyToken, response));
         }
-      } else if (message.text === "avatar" || message.text === "รูปโปรไฟล์ของฉัน") {
+      } else if (
+        message.text === "avatar" ||
+        message.text === "รูปโปรไฟล์ของฉัน"
+      ) {
         const userId = event.source.userId;
         // console.log(event.source.userId);
         const existUser = await Users.findOne({
           where: {
             userId: userId,
           },
-          attributes:['id']
+          attributes: ["id"],
         });
         // console.log(existUser.id);
         if (!existUser) {
@@ -453,53 +481,206 @@ const webhook = async (req, res) => {
         } else {
           const img = await Users.findOne({
             where: {
-              id: existUser.id
+              id: existUser.id,
             },
-            attributes: ['pictureUrl']
-          })
-        //  console.log(img.pictureUrl); 
-         let image = {
-          type: 'image',
-          originalContentUrl: `${NGROK}/images/${img.pictureUrl}`,
-          previewImageUrl: `${NGROK}/images/${img.pictureUrl}`,
-         }
-         return res.send(client.replyMessage(event.replyToken, image));
-        }
-        
-      } else if (message.text === "test" || message.text === "เทส") {
-        // let user = await Users.findAll({
-        //   attributes: ['userId']
-        // })
-        // let userId = []
-        // user.forEach((u) => {
-        //   userId.push(u.userId)
-        // })
-        // return res.send(client.multicast(userId, { type: 'text', text: 'ส่งหาทุกคน' }))
-        // console.log(userId);
+            attributes: ["pictureUrl"],
+          });
+          //  console.log(img.pictureUrl);
 
-        let address = await SubDistrict.findOne({
-          where: {
-            id: 440310
-          },
-          attributes: ['name_th', 'zip_code'],
-          include: [
-            {
-              model: District,
-              attributes: ['name_th'],
-              include: [
-                {
-                  model: Provinces,
-                  attributes: ['name_th']
-                }
-              ]
+          if (img.pictureUrl.length <= 20) {
+            let image = [
+              {
+                type: 'text',
+                text: 'รูปโปรไฟล์บนเว็บไซต์ของคุณ'
+              },
+              {
+              type: "image",
+              originalContentUrl: `${NGROK}/images/avatar/${img.pictureUrl}`,
+              previewImageUrl: `${NGROK}/images/avatar/${img.pictureUrl}`,
             }
-          ]
-        })
-        let zipCode = address.zip_code
-        let subDist= address.name_th
-        let dist = address.District.name_th
-        let prov = address.District.Province.name_th
-        // console.log(subDist, dist, prov, zipCode);
+            ];
+            return res.send(client.replyMessage(event.replyToken, image));
+          } else {
+            let image = [
+              {
+                type: 'text',
+                text: 'รูปโปรไฟล์บนเว็บไซต์ของคุณ'
+              },
+              {
+              type: "image",
+              originalContentUrl: img.pictureUrl,
+              previewImageUrl: img.pictureUrl,
+            }
+            ];
+            return res.send(client.replyMessage(event.replyToken, image));
+          }
+
+          
+        }
+      } else if (message.text === "requirement" || message.text === "ที่ฉันต้องการ") {
+        const userId = event.source.userId;
+        // console.log(event.source.userId);
+        const existUser = await Users.findOne({
+          where: {
+            userId: userId,
+          },
+          attributes: ["id"],
+        });
+
+        if (!existUser) {
+          return res.end();
+        } else {
+          let requirementPost = await UserRequirement.findAll({
+            where: {
+              userId: existUser.id,
+            },
+            attributes: { exclude: ["userId", "createdAt", "updatedAt"] },
+          });
+
+          let purposeId = [];
+          let typeId = [];
+          let subDistrictId = [];
+
+          requirementPost.forEach((post) => {
+            purposeId.push(post.purposeId);
+            typeId.push(post.typeId);
+            subDistrictId.push(post.subDistrictId);
+          });
+
+          let property = await UserSubProp.findAll({ 
+            attributes: ["id"],
+            where: {
+              userId: { [Op.ne]: existUser.id }
+            },
+            include: [
+              {
+                model: PropertyPurpose,
+                attributes: ["id"],
+                where: { id: { [Op.in]: purposeId } },
+              },
+              {
+                model: PropertyType,
+                attributes: ["id"],
+                where: { id: { [Op.in]: typeId } },
+              },
+              {
+                model: SubDistrict,
+                attributes: ["id"],
+                where: { id: { [Op.in]: subDistrictId } },
+              },
+            ],
+          });
+
+          let propertyId = [];
+          property.forEach((prop) => {
+            propertyId.push(prop.id);
+          });
+
+          property = await sequelize.query(
+            `select  user_sub_props.id as id,
+                             user_sub_props.title as title,
+                             user_sub_props.description as description,
+                             user_sub_props.priceSale as priceSale,
+                             user_sub_props.priceRent as priceRent,
+                             
+                             user_sub_props.lat as lat,
+                             user_sub_props.lng as lng,
+                             user_sub_props.houseNo as houseNo,
+                             user_sub_props.createdAt as createdAt,
+            
+                             propPurpose.id as purpose_id,
+                             propPurpose.name_th as purpose,
+                            
+                             propType.id as type_id,
+                             propType.name_th as type,
+                      
+                             provinces.id as prov_id,
+                             provinces.name_th as prov_name, 
+            
+                             districts.id as dist_id,
+                             districts.name_th as dist_name,
+            
+                             subdistricts.id as subDist_id,
+                             subdistricts.name_th as subDist_name, 
+                             subdistricts.zip_code as zipcode,    
+                                      
+                             addi.bedrooms as bedrooms,
+                             addi.bathrooms as bathrooms,       
+                             addi.garages as garages,
+                             addi.area as area,      
+                             addi.floor as floor, 
+                             addi.yearBuilt as yearBuilt
+            
+                    from user_sub_props
+            
+                    inner join property_purposes propPurpose on user_sub_props.propFor = propPurpose.id
+                    inner join property_types propType on user_sub_props.propType = propType.id
+                    inner join subdistricts on user_sub_props.addressId = subdistricts.id 
+                    inner join districts on subdistricts.DistrictId = districts.id 
+                    inner join provinces on districts.ProvinceId = provinces.id
+                    inner join user_sub_prop_additionals addi on addi.propertyId = user_sub_props.id
+  
+                    where user_sub_props.id IN (${propertyId})
+  
+                    order by createdAt desc limit 10   `
+          );
+
+          property = property[0];
+
+          property.forEach((res) => {
+            res.gallery = [];
+          });
+
+          let propGallery = await UserSubPropGallery.findAll({
+            attributes: ["path", "propertyId"],
+            where: {
+              propertyId: { [Op.in]: propertyId },
+            },
+          });
+
+          property.forEach((res) => {
+            propGallery.forEach((gallery) => {
+              if (res.id == gallery.propertyId) {
+                res.gallery.push(`${NGROK}/images/avatar/` + gallery.path);
+              }
+            });
+          });
+
+          property.forEach((res) => {
+            res.gallery = res.gallery.reverse();
+            res.gallery = res.gallery[0];
+          });
+          let contents = [];
+          property.forEach((res) => {
+            res.address = `${res.houseNo}, ${res.subDist_name}, ${res.dist_name}, ${res.prov_name}, ${res.zipcode}`;
+            res.link = `https://127.0.0.1:4200/properties/${res.id}`;
+
+            if (res.purpose_id == 1) {
+              res.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceSale)}`;
+            } else if (res.purpose_id == 2) {
+              res.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceRent)}/เดือน`;
+            } else if (res.purpose_id == 3) {
+              res.price = `฿ ${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceSale)}, ฿ ${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceRent)}/เดือน`;
+            }
+
+            const temp = createFlexMessage(res);
+            contents.push(temp);
+          });
+          const carousel = { type: "carousel", contents: contents };
+          const response = [
+            {
+              type: 'text',
+              text: 'อสังหาริมทรัพย์ที่ตรงกับความต้องการของคุณ'
+            },
+            {
+              type: "flex",
+              altText: "newest rent",
+              contents: carousel,
+            },
+          ];
+
+          return res.send(client.replyMessage(event.replyToken, response));
+        }
       }
     }
   } catch (err) {

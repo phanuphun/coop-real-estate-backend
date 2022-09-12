@@ -20,7 +20,7 @@ router.get('/getUserProfile', validator.verify, controller.getUserProfile)
 
 router.put('/updateUserProfile', validator.verify, controller.updateUserProfile)
 
-router.put('/updateAvatar', validator.verify, multer.uploadImages, multer.resizeImages, multer.getResult, controller.updateAvatar)
+router.put('/updateAvatar', validator.verify, multer.uploadImages, multer.resizeImagesAvatar, multer.getResult, controller.updateAvatar)
 
 router.get('/getAccountBasic', validator.verify, controller.getAccountBasic)
 
@@ -28,16 +28,29 @@ router.get('/checkFavorite/:propertyId', validator.verify, controller.checkFavor
 
 router.get('/checkCompare/:propertyId', validator.verify, controller.checkCompare)
 
-router.post('/addRequirement', validator.verify, controller.addRequirement)
-
-router.get('/getRequirements', validator.verify, controller.getRequirements)
-
-router.post('/removeRequirement/:id', validator.verify, controller.removeRequirement)
-
-router.post('/removeRequirement', validator.verify, controller.clearAllRequirement)
-
-router.post('/reportProperty/:propertyId', validator.verify, controller.reportProperty)
+router.post('/userReportProperty/:propertyId', validator.verify, controller.userReportProperty)
 
 router.get('/getUserPackageId', validator.verify, controller.getUserPackageId)
 
+router.post('/userCreateRequirementPost', validator.verify, controller.userCreateRequirementPost)
+
+router.get('/getUserRequirementPost', validator.verify, controller.getUserRequirementPost)
+
+router.post('/removeRequirementPostById/:postId', validator.verify, controller.removeRequirementPostById)
+
+router.put('/editRequirementPostById/:postId', validator.verify, controller.editRequirementPostById)
+
+router.post('/clearAllRequirementPost', validator.verify, controller.clearAllRequirementPost)
+
+router.get('/getRequirementPostByAgentId/:userId', controller.getRequirementPostByAgentId)
+
+router.get('/checkUserAndAgentSame/:agentId', validator.verify, controller.checkUserAndAgentSame)
+
+router.post('/userReportAgent/:agentId', validator.verify, controller.userReportAgent)
+
+router.post('/userBuyPackage', validator.verify, multer.uploadImages, multer.resizeImagesPayment, multer.getResult, controller.userBuyPackage)
+
+router.get('/getUserPackageExpire', validator.verify, controller.getUserPackageExpire)
+
+router.post('/userCancelPackage' ,validator.verify, controller.userCancelPackage)
 module.exports = router

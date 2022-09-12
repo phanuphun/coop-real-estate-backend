@@ -29,7 +29,7 @@ const uploadImages = (req, res, next) => {
     });
   };
 
-const resizeImages = async (req, res, next) => {
+const resizeImagesProperty = async (req, res, next) => {
     if (!req.files) return next();
     req.body.gallery = [];
     // console.log(req.files);
@@ -40,7 +40,42 @@ const resizeImages = async (req, res, next) => {
           .resize(600, 450)
           .toFormat("jpeg")
           .jpeg({ quality: 100 })
-          .toFile(`public/images/${newFilename}`);
+          .toFile(`public/images/properties/${newFilename}`);
+        req.body.gallery.push(newFilename);
+      })
+    );
+    next();
+  };
+const resizeImagesAvatar = async (req, res, next) => {
+    if (!req.files) return next();
+    req.body.gallery = [];
+    // console.log(req.files);
+    await Promise.all(
+      req.files.map(async file => {
+        const newFilename = Date.now()+ Math.round(Math.random() * 1000) + ".jpg"; 
+        await sharp(file.buffer)
+          .resize(600, 450)
+          .toFormat("jpeg")
+          .jpeg({ quality: 50 })
+          .toFile(`public/images/avatar/${newFilename}`);
+        req.body.gallery.push(newFilename);
+      })
+    );
+    next();
+  };
+
+const resizeImagesPayment = async (req, res, next) => {
+    if (!req.files) return next();
+    req.body.gallery = [];
+    // console.log(req.files);
+    await Promise.all(
+      req.files.map(async file => {
+        const newFilename = Date.now()+ Math.round(Math.random() * 1000) + ".jpg"; 
+        await sharp(file.buffer)
+          // .resize(400, 500)
+          .toFormat("jpeg")
+          .jpeg({ quality: 100 })
+          .toFile(`public/images/payment/${newFilename}`);
         req.body.gallery.push(newFilename);
       })
     );
@@ -60,6 +95,8 @@ const resizeImages = async (req, res, next) => {
 
   module.exports = {
     uploadImages: uploadImages,
-    resizeImages: resizeImages,
+    resizeImagesProperty: resizeImagesProperty,
+    resizeImagesAvatar: resizeImagesAvatar,
+    resizeImagesPayment: resizeImagesPayment,
     getResult: getResult
   };

@@ -1,6 +1,6 @@
 module.exports = (sequelize, Sequelize) => {
-    const UserRequirement = sequelize.define(
-      "user_requirement",
+    const UserReportUser = sequelize.define(
+      "user_report_user",
       {
         id: {
           type: Sequelize.INTEGER,
@@ -11,18 +11,21 @@ module.exports = (sequelize, Sequelize) => {
         userId: {
           type: Sequelize.INTEGER,
         },
-        purposeId: {
-          type: Sequelize.INTEGER,
-        },
-        typeId: {
+        userReportedId: {
           type: Sequelize.INTEGER
         },
-        subDistrictId: {
+        detailReportId: {
           type: Sequelize.INTEGER
+        },
+        description: {
+            type: Sequelize.STRING
         }
       },
-       
+      {
+        createdAt: false,
+        updatedAt: false,
+      }
     );
-    return UserRequirement;
+    return UserReportUser;
   };
   

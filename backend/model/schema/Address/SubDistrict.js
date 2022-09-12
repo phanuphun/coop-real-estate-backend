@@ -1,6 +1,6 @@
 module.exports = (sequelize, Sequelize) => {
   const SubDistrict = sequelize.define(
-    "SubDistrict",
+    "subdistrict",
     {
       id: {
         type: Sequelize.INTEGER,

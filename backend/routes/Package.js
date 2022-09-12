@@ -4,10 +4,11 @@ const router = express.Router();
 const controller = require('../controllers/package.controller')
 const validator = require('../services/validator/validator')
  
-router.get('/getPackagesMonthly', controller.getPackagesMonthly)
+router.get('/getPackages1M', controller.getPackages1M)
 
-router.get('/getPackagesYearly', controller.getPackagesYearly)
+router.get('/getPackages3M', controller.getPackages3M)
 
-// router.post('/setReview/:faqId', validator.verify, controller.setFaqHelful)
+router.get('/getPackages6M', controller.getPackages6M)
+
 
 module.exports = router

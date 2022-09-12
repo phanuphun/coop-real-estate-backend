@@ -14,6 +14,12 @@ module.exports = (sequelize, Sequelize) => {
         propertyId: {
           type: Sequelize.INTEGER,
         },
+        detailReportId: {
+          type: Sequelize.INTEGER
+        }, 
+        description: {
+          type: Sequelize.STRING
+        }
       },
       {
         createdAt: false,
