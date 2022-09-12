@@ -608,7 +608,7 @@ module.exports.deletePropertyById = (req,res,id) => {
     })
 }
 // get property data overview
-module.exports.porpertyDataOverView = (req,res)=>{
+module.exports.propertyOverview = (req,res)=>{
     sqlGetPupularType =`
         SELECT
             COUNT(user_sub_props.propType) AS propertyTypeLength ,
