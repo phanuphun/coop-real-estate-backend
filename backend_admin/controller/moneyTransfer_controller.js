@@ -41,35 +41,49 @@ module.exports.moneyTransferOverview = (req,res) => {
         GROUP BY money_transfer.userId
         ORDER BY length DESC;
     `
+    sqlWaitingConfirm =`
+        SELECT 
+            COUNT(*) AS waitingConfirm
+        FROM money_transfer
+        WHERE confirm = 0;
+    `
+    sqlAllmoneyTransfer =`
+        SELECT 
+            COUNT(*) AS allMoneyTransfer
+        FROM money_transfer;
+        `
+    let data = {}
     dbConn.query(sqlPopularPackage,(err,result)=>{
         if(err)err_service.errorNotification(err,'overview money transfer => popular package')
-        let popularPackge
         if(result.length > 0){
-            popularPackge = result[0].packageName
+            data.popularPackge = result[0].packageName
         }else{
-            popularPackge = 'unknow'
+            data.popularPackge = 'unknow'
         }
         dbConn.query(sqlMostSubScription,(err,result)=>{
             if(err)err_service.errorNotification(err,'overview money transfer => user most subscrition')
-            let userMostSubscrition = 'unknow'
-            let userImage = 'unknow'
+            data.userMostSubscrition = 'unknow'
+            data.userImage = 'unknow'
             if(result.length > 0){
-                userMostSubscrition = result[0].userFname + ' ' + result[0].userLname
-                userImage = result[0].userImage
+                data.userMostSubscrition = result[0].userFname + ' ' + result[0].userLname
+                data.userImage = result[0].userImage
             }
             dbConn.query(sqlSubsciberLength,(err,result)=>{
                 if(err)err_service.errorNotification(err,'overview money transfer => user most subscrition')
-                let subscitionLength = result.length
-                let data = {
-                    popularPackge:popularPackge,
-                    userMostSubscrition:userMostSubscrition,
-                    subscitionLength:subscitionLength,
-                    userImage:userImage
-                }
-                res.send({
-                    status:true,
-                    data:data,
-                    imagePathUser:process.env.IMAGE_PATH_AVATAR
+                data.subscitionLength = result.length
+                dbConn.query(sqlWaitingConfirm,(err,result)=>{
+                    if(err)err_service.errorNotification(err,'overview money transfer => wating confirm')
+                    data.moneyTransferWaitingConfirm = result[0].waitingConfirm
+                    dbConn.query(sqlAllmoneyTransfer,(err,result)=>{
+                        if(err)err_service.errorNotification(err,'overview money transfer => all moeny transfer')
+                        data.allMoneyTransfer = result[0].allMoneyTransfer
+                        res.send({
+                            status:true,
+                            data:data,
+                            imagePathUser:process.env.IMAGE_PATH_AVATAR
+                        })
+                    })
+
                 })
             })
         })

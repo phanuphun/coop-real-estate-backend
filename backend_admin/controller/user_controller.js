@@ -38,6 +38,13 @@ module.exports.userOverview = (req,res) => {
         FROM user_report_users
         GROUP BY userId
     `
+
+    sqlBannedUser =`
+        SELECT 
+            COUNT(*) AS bannedUser
+        FROM users 
+        WHERE displayStatus = 0
+    `
     let data = {}
     dbConn.query(sqlAllUser,(err,result)=>{
         if(err)err_service.errorNotification(err,'user Overview => all user')
@@ -48,9 +55,13 @@ module.exports.userOverview = (req,res) => {
             dbConn.query(sqlUserReport,(err,result)=>{
                 if(err)err_service.errorNotification(err,'user Overview => user report  ')
                 data.userReport = result.length
-                res.send({
-                    status:true,
-                    data:data
+                dbConn.query(sqlBannedUser,(err,result)=>{
+                    if(err)err_service.errorNotification(err,'user Overview => banne user  ')
+                    data.bannedUser = result[0].bannedUser
+                    res.send({
+                        status:true,
+                        data:data
+                    })
                 })
             })
         })
