@@ -5,9 +5,10 @@ const conn = mysql.createConnection({
     // LocalHost
 
     host:'127.0.0.1',
-    user:'khem',
-    password:'DeltasoftPassword',
+    user:'root',
+    password:'',
     database:'test',
+    waitForConnections: true,
 
     // host:'159.223.59.238',
     // user:'khem',

@@ -21,238 +21,241 @@ const multer_s = require('./../service/multer')
 //Login
 //***************************************************************************** */
 //signup
-route.post('/sign-up',auth.requiredToken,multer_s.uploadImages,multer_s.resizeImagesAvatar,multer_s.getResult,login_ct.signup);
+route.post('/admin/sign-up',auth.requiredToken,multer_s.uploadImages,multer_s.resizeImagesAvatar,multer_s.getResult,login_ct.signup);
 
 //signin
-route.post('/sign_in',login_ct.signin);
+route.post('/admin/sign_in',login_ct.signin);
 
 //***************************************************************************** */
 // User and Admin
 //***************************************************************************** */
 // user overview
-route.get('/userOverview',auth.requiredToken,user_ct.userOverview)
+route.get('/admin/userOverview',auth.requiredToken,user_ct.userOverview)
 
 // add new member (user)
-route.post('/addNewMember',auth.requiredToken,multer_s.uploadImages,multer_s.resizeImagesAvatar,multer_s.getResult,user_ct.addNewMember)
+route.post('/admin/addNewMember',auth.requiredToken,multer_s.uploadImages,multer_s.resizeImagesAvatar,multer_s.getResult,user_ct.addNewMember)
 
 // get all admin list
-route.post('/adminList',auth.requiredToken,user_ct.getAllAdminList);
+route.post('/admin/adminList',auth.requiredToken,user_ct.getAllAdminList);
 
 //get admin detail
-route.get('/adminDetail/:id',auth.requiredToken,user_ct.getAdminDetail)
+route.get('/admin/adminDetail/:id',auth.requiredToken,user_ct.getAdminDetail)
 
 //update Admin Detail
-route.put('/updateAdminDetail',auth.requiredToken,multer_s.uploadImages,multer_s.resizeImagesAvatar,multer_s.getResult,user_ct.updateAdminDetail)
+route.put('/admin/updateAdminDetail',auth.requiredToken,multer_s.uploadImages,multer_s.resizeImagesAvatar,multer_s.getResult,user_ct.updateAdminDetail)
 
 // delete admin
-route.delete('/deleteAdmin/:id',auth.requiredToken,user_ct.deleteAdmin);
+route.delete('/admin/deleteAdmin/:id',auth.requiredToken,user_ct.deleteAdmin);
 
 // get user length
-route.get('/userLength',auth.requiredToken,user_ct.getUsersLength)
+route.get('/admin/userLength',auth.requiredToken,user_ct.getUsersLength)
 
 // get all users
-route.post('/usersList',auth.requiredToken,user_ct.getAlluserList)
+route.post('/admin/usersList',auth.requiredToken,user_ct.getAlluserList)
 
 // get all users
-route.get('/usersListForInsert',auth.requiredToken,user_ct.getAllUserForPropertySelect)
+route.get('/admin/usersListForInsert',auth.requiredToken,user_ct.getAllUserForPropertySelect)
 
 // get users Id
-route.get('/userByid/:id',auth.requiredToken,user_ct.getUserById)
+route.get('/admin/userByid/:id',auth.requiredToken,user_ct.getUserById)
 
 // delete user
-route.delete('/deleteUserById/:id',auth.requiredToken,user_ct.deleteUser)
+route.delete('/admin/deleteUserById/:id',auth.requiredToken,user_ct.deleteUser)
 
 //delete favorite property id
-route.delete('/deleteFavPropsById/:id',auth.requiredToken,user_ct.deleteFavProperty)
+route.delete('/admin/deleteFavPropsById/:id',auth.requiredToken,user_ct.deleteFavProperty)
 
 //delete compare property id
-route.delete('/deleteComparePropsById/:id',auth.requiredToken,user_ct.deleteCompareProperty)
+route.delete('/admin/deleteComparePropsById/:id',auth.requiredToken,user_ct.deleteCompareProperty)
 
 // update User
-route.put('/updateUser',auth.requiredToken,multer_s.uploadImages,multer_s.resizeImagesAvatar,multer_s.getResult,user_ct.updateUser)
+route.put('/admin/updateUser',auth.requiredToken,multer_s.uploadImages,multer_s.resizeImagesAvatar,multer_s.getResult,user_ct.updateUser)
 
 //get new user lengt
-route.get('/getNewUserLength',auth.requiredToken,user_ct.getNewUserLength)
+route.get('/admin/getNewUserLength',auth.requiredToken,user_ct.getNewUserLength)
 
 //get addmin length
-route.get('/getAdminLength',auth.requiredToken,user_ct.getAdminLength)
+route.get('/admin/getAdminLength',auth.requiredToken,user_ct.getAdminLength)
 
 //seach user
-route.post('/seachUser',auth.requiredToken,user_ct.seachUser)
+route.post('/admin/seachUser',auth.requiredToken,user_ct.seachUser)
 
 //seach user dialog
-route.post('/seachUserDialog',auth.requiredToken,user_ct.seachUserDialog)
+route.post('/admin/seachUserDialog',auth.requiredToken,user_ct.seachUserDialog)
 
 //seach admin
-route.post('/seachAdmin',auth.requiredToken,user_ct.seachAdmin)
+route.post('/admin/seachAdmin',auth.requiredToken,user_ct.seachAdmin)
+
+//change Status User
+route.get('/admin/changeStatusUser/:id',auth.requiredToken,user_ct.changeStatusUser)
 
 //***************************************************************************** */
 // Property Data
 //***************************************************************************** */
-// porperty overview
-route.get('/porpertyDataOverView',auth.requiredToken,property_ct.porpertyDataOverView)
+//property Overview
+route.get('/admin/propertyOverview',auth.requiredToken,property_ct.propertyOverview)
 
 //add new Property
-route.post('/addNewProperty',auth.requiredToken,multer_s.uploadImages,multer_s.resizeImagesProperty,multer_s.getResult,property_ct.addNewProperty);
+route.post('/admin/addNewProperty',auth.requiredToken,multer_s.uploadImages,multer_s.resizeImagesProperty,multer_s.getResult,property_ct.addNewProperty);
 
 // get property length
-route.get('/propertyLength',auth.requiredToken,property_ct.getPropertyLength);
+route.get('/admin/propertyLength',auth.requiredToken,property_ct.getPropertyLength);
 
 // get all property list
-route.post('/realEstate/property-list',auth.requiredToken,property_ct.getAllPropertyList);
+route.post('/admin/property-list',auth.requiredToken,property_ct.getAllPropertyList);
 
 //get property List By user ID
-route.get('/getPropertyListByUserId/:id',auth.requiredToken,property_ct.getPropertyListByUserId)
+route.get('/admin/getPropertyListByUserId/:id',auth.requiredToken,property_ct.getPropertyListByUserId)
 
 //delete property by id
-route.delete('/deletePropertyById/:id',auth.requiredToken,property_ct.deletePropertyById)
+route.delete('/admin/deletePropertyById/:id',auth.requiredToken,property_ct.deletePropertyById)
 
 //get Favorite Property
-route.get('/getFavoriteProperty/:id',auth.requiredToken,property_ct.getFavoriteProperty)
+route.get('/admin/getFavoriteProperty/:id',auth.requiredToken,property_ct.getFavoriteProperty)
 
 //get Compare property
-route.get('/getCompareProperty/:id',auth.requiredToken,property_ct.getCompareProperty)
+route.get('/admin/getCompareProperty/:id',auth.requiredToken,property_ct.getCompareProperty)
 
 //get property By ID
-route.get('/realEstate/propertyBy/:id',auth.requiredToken,property_ct.getPropertyByID);
+route.get('/admin/propertyBy/:id',auth.requiredToken,property_ct.getPropertyByID);
 
 //delete Property Image
-route.delete('/deletePropertyImage/:id',auth.requiredToken,property_ct.deletePropertyImage);
+route.delete('/admin/deletePropertyImage/:id',auth.requiredToken,property_ct.deletePropertyImage);
 
 //get image by property id
-route.get('/getImagesByPropID/:id',auth.requiredToken,property_ct.getImagesByPropID)
+route.get('/admin/getImagesByPropID/:id',auth.requiredToken,property_ct.getImagesByPropID)
 
 //update property
-route.put('/updatePropertyDetail',auth.requiredToken,multer_s.uploadImages,multer_s.resizeImagesProperty,multer_s.getResult,property_ct.updateProperty);
+route.put('/admin/updatePropertyDetail',auth.requiredToken,multer_s.uploadImages,multer_s.resizeImagesProperty,multer_s.getResult,property_ct.updateProperty);
 
 // get property type
-route.get('/property_type',auth.requiredToken,property_ct.getAllPropertyType)
+route.get('/admin/property_type',auth.requiredToken,property_ct.getAllPropertyType)
 
 //get property porpose
-route.get('/property_purposes',auth.requiredToken,property_ct.getAllPropertyPurposes)
+route.get('/admin/property_purposes',auth.requiredToken,property_ct.getAllPropertyPurposes)
 
 //get Futures list
-route.get('/futuresList',auth.requiredToken,property_ct.getAllFutures)
+route.get('/admin/futuresList',auth.requiredToken,property_ct.getAllFutures)
 
 //get new property leength
-route.get('/getNewPropertyLength',auth.requiredToken,property_ct.getNewPropertyLength)
+route.get('/admin/getNewPropertyLength',auth.requiredToken,property_ct.getNewPropertyLength)
 
 //seach property table
-route.post('/searchProperty',auth.requiredToken,property_ct.searchProperty)
+route.post('/admin/searchProperty',auth.requiredToken,property_ct.searchProperty)
 
 //***************************************************************************** */
 // report
 //***************************************************************************** */
 //user report
-route.post('/userReport',auth.requiredToken,report_ct.userReport)
+route.post('/admin/userReport',auth.requiredToken,report_ct.userReport)
 
 //reporter list
-route.get('/userReporterList/:id',auth.requiredToken,report_ct.userReporter)
+route.get('/admin/userReporterList/:id',auth.requiredToken,report_ct.userReporter)
 
 //confirm user report
-route.delete('/confirmUserReport/:id',auth.requiredToken,report_ct.confirmUserReport)
+route.delete('/admin/confirmUserReport/:id',auth.requiredToken,report_ct.confirmUserReport)
 
 //add property New Report Topic
-route.post('/addPropertyReportTopic',auth.requiredToken,report_ct.addPropertyReportTopic)
+route.post('/admin/addPropertyReportTopic',auth.requiredToken,report_ct.addPropertyReportTopic)
 
 // update property report topic
-route.put('/updatePropertyReportTopic',auth.requiredToken,report_ct.updatePropertyReportTopic)
+route.put('/admin/updatePropertyReportTopic',auth.requiredToken,report_ct.updatePropertyReportTopic)
 
 // delete Property Report Topic
-route.delete('/deletePropertyReportTopic/:id',auth.requiredToken,report_ct.deletePropertyReportTopic)
+route.delete('/admin/deletePropertyReportTopic/:id',auth.requiredToken,report_ct.deletePropertyReportTopic)
 
 //get all property report topic
-route.get('/getAllPropertyReportTopic',auth.requiredToken,report_ct.getAllPropertyReportTopic)
+route.get('/admin/getAllPropertyReportTopic',auth.requiredToken,report_ct.getAllPropertyReportTopic)
 
 //add user New Report Topic
-route.post('/addNewReportTopic',auth.requiredToken,report_ct.addNewReportTopic)
+route.post('/admin/addNewReportTopic',auth.requiredToken,report_ct.addNewReportTopic)
 
 //update report tpoic
-route.put('/updateReportTopic',auth.requiredToken,report_ct.updateReportTopic)
+route.put('/admin/updateReportTopic',auth.requiredToken,report_ct.updateReportTopic)
 
 //get all report topic
-route.get('/getAllReportTopic',auth.requiredToken,report_ct.getAllReportTopic)
+route.get('/admin/getAllReportTopic',auth.requiredToken,report_ct.getAllReportTopic)
 
 //delete report topic
-route.delete('/deleteReportTopic/:id',auth.requiredToken,report_ct.deleteReportTopic)
+route.delete('/admin/deleteReportTopic/:id',auth.requiredToken,report_ct.deleteReportTopic)
 
 //get all property report
-route.post('/getAllPropertyReport',auth.requiredToken,report_ct.getAllPropertyReport)
+route.post('/admin/getAllPropertyReport',auth.requiredToken,report_ct.getAllPropertyReport)
 
 //confirm Property Report
-route.delete('/confirmPropertyReport/:id',auth.requiredToken,report_ct.confirmPropertyReport)
+route.delete('/admin/confirmPropertyReport/:id',auth.requiredToken,report_ct.confirmPropertyReport)
 
 //get reporter list
-route.get('/getReporterList/:id',auth.requiredToken,report_ct.getReporterList)
+route.get('/admin/getReporterList/:id',auth.requiredToken,report_ct.getReporterList)
 
 //get property report length
-route.get('/propertyReportLength',auth.requiredToken,report_ct.propertyReportLength)
+route.get('/admin/propertyReportLength',auth.requiredToken,report_ct.propertyReportLength)
 
 //get user report length
-route.get('/userReportLength',auth.requiredToken,report_ct.userReportLength)
+route.get('/admin/userReportLength',auth.requiredToken,report_ct.userReportLength)
 
 //***************************************************************************** */
 // FAQ
 //***************************************************************************** */
 //get FAQ
-route.get('/getFAQ',auth.requiredToken,faq_ct.getFAQ)
+route.get('/admin/getFAQ',auth.requiredToken,faq_ct.getFAQ)
 
 //get FAQ Category
-route.get('/getCategoryFAQ',auth.requiredToken,faq_ct.getCategoryFAQ)
+route.get('/admin/getCategoryFAQ',auth.requiredToken,faq_ct.getCategoryFAQ)
 
 //get FAQ by Category ID
-route.get('/getFAQByCategory/:id',auth.requiredToken,faq_ct.getFAQByCategory)
+route.get('/admin/getFAQByCategory/:id',auth.requiredToken,faq_ct.getFAQByCategory)
 
 //get FAQ By ID
-route.get('/getFAQ_byID/:id',auth.requiredToken,faq_ct.getFAQByID)
+route.get('/admin/getFAQ_byID/:id',auth.requiredToken,faq_ct.getFAQByID)
 
 //insert FAQ
-route.post('/insertFAQ',auth.requiredToken,faq_ct.insertFAQ)
+route.post('/admin/insertFAQ',auth.requiredToken,faq_ct.insertFAQ)
 
 //update FAQ
-route.put('/updateFAQ',auth.requiredToken,faq_ct.updateFAQ)
+route.put('/admin/updateFAQ',auth.requiredToken,faq_ct.updateFAQ)
 
 //delete FAQ
-route.delete('/deleteFAQ/:id',auth.requiredToken,faq_ct.deleteFAQ)
+route.delete('/admin/deleteFAQ/:id',auth.requiredToken,faq_ct.deleteFAQ)
 
 //change Status FAQ
-route.get('/changeStatusFAQ/:id',auth.requiredToken,faq_ct.changeStatusFAQ)
+route.get('/admin/changeStatusFAQ/:id',auth.requiredToken,faq_ct.changeStatusFAQ)
 
 //***************************************************************************** */
 // address
 //***************************************************************************** */
 // get all provices
-route.get('/provinces',other_ct.getProvinces);
+route.get('/admin/provinces',other_ct.getProvinces);
 
 // get all districts
-route.get('/districts',other_ct.getDistricts)
+route.get('/admin/districts',other_ct.getDistricts)
 
 // get all sub-districts
-route.get('/subDistrict',other_ct.getSubDistricts)
+route.get('/admin/subDistrict',other_ct.getSubDistricts)
 
 // get districts By Province Id
-route.get('/districts/:id',other_ct.getDistrictsByID);
+route.get('/admin/districts/:id',other_ct.getDistrictsByID);
 
 // get sub-districts By districts Id
-route.get('/subDistricts/:id',other_ct.getSubDistrictsByDtID);
+route.get('/admin/subDistricts/:id',other_ct.getSubDistrictsByDtID);
 
 // get zipcode By districts Id
-route.get('/subDistricts/zipcode/:id',other_ct.getZipCode);
+route.get('/admin/subDistricts/zipcode/:id',other_ct.getZipCode);
 
 //***************************************************************************** */
 //package
 //***************************************************************************** */
 //get all package
-route.get('/package',auth.requiredToken,package_ct.getPackageName)
+route.get('/admin/package',auth.requiredToken,package_ct.getPackageName)
 
 //insert package
-route.post('/insert_package',auth.requiredToken,package_ct.insertPackage)
+route.post('/admin/insert_package',auth.requiredToken,package_ct.insertPackage)
 
 //delete package
-route.delete('/delete_package/:id',auth.requiredToken,package_ct.deletePackage)
+route.delete('/admin/delete_package/:id',auth.requiredToken,package_ct.deletePackage)
 
 //update package
-route.put('/packageUpdate',auth.requiredToken,package_ct.updatePackage)
+route.put('/admin/packageUpdate',auth.requiredToken,package_ct.updatePackage)
 
 
 
@@ -260,56 +263,56 @@ route.put('/packageUpdate',auth.requiredToken,package_ct.updatePackage)
 // Money Transfer
 //***************************************************************************** */
 //money Transfer Overview
-route.get('/moneyTransferOverview',auth.requiredToken,moneyTransfer_ct.moneyTransferOverview)
+route.get('/admin/moneyTransferOverview',auth.requiredToken,moneyTransfer_ct.moneyTransferOverview)
 
 //money transfer
-route.post('/addMoneyTransfer',auth.requiredToken,multer_s.uploadImages,multer_s.resizeImagesPayment,multer_s.getResult,moneyTransfer_ct.addMoneyTransfer)
+route.post('/admin/addMoneyTransfer',auth.requiredToken,multer_s.uploadImages,multer_s.resizeImagesPayment,multer_s.getResult,moneyTransfer_ct.addMoneyTransfer)
 
 //get All Money Transfer
-route.post('/getAllMoneyTransfer',auth.requiredToken,moneyTransfer_ct.getAllMoneyTransfer)
+route.post('/admin/getAllMoneyTransfer',auth.requiredToken,moneyTransfer_ct.getAllMoneyTransfer)
 
 //get Money Transfer By User Id
-route.get('/getMoneyTransferByUserId/:id',auth.requiredToken,moneyTransfer_ct.getMoneyTransferByUserId)
+route.get('/admin/getMoneyTransferByUserId/:id',auth.requiredToken,moneyTransfer_ct.getMoneyTransferByUserId)
 
 //get new money transfer
-route.get('/getNewMoneyTransfer',auth.requiredToken,moneyTransfer_ct.getNewMoneyTransfer)
+route.get('/admin/getNewMoneyTransfer',auth.requiredToken,moneyTransfer_ct.getNewMoneyTransfer)
 
 //confirm Money Transfer
-route.put('/confirmMoneyTransfer',auth.requiredToken,moneyTransfer_ct.confirmMoneyTransfer)
+route.put('/admin/confirmMoneyTransfer',auth.requiredToken,moneyTransfer_ct.confirmMoneyTransfer)
 
 //delete money ransfer
-route.delete('/deleteMoneyTransfer/:id',auth.requiredToken,moneyTransfer_ct.deleteMoneyTransfer)
+route.delete('/admin/deleteMoneyTransfer/:id',auth.requiredToken,moneyTransfer_ct.deleteMoneyTransfer)
 
 //seachMoneyTransfer
-route.post('/seachMoneyTransfer',auth.requiredToken,moneyTransfer_ct.seachMoneyTransfer)
+route.post('/admin/seachMoneyTransfer',auth.requiredToken,moneyTransfer_ct.seachMoneyTransfer)
 
 //***************************************************************************** */
 // user req
 //***************************************************************************** */
 // get user req by user
-route.get('/getUserReq/:id',auth.requiredToken,other_ct.getUserReq)
+route.get('/admin/getUserReq/:id',auth.requiredToken,other_ct.getUserReq)
 
 // delete user req by req id
-route.delete('/deleteUserReq/:id',auth.requiredToken,other_ct.deleteUserReq)
+route.delete('/admin/deleteUserReq/:id',auth.requiredToken,other_ct.deleteUserReq)
 
 //***************************************************************************** */
 //Feature
 //***************************************************************************** */
 //insert features
-route.post('/insert_features',auth.requiredToken,other_ct.insertFeatures)
+route.post('/admin/insert_features',auth.requiredToken,other_ct.insertFeatures)
 
 //delete features
-route.delete('/delete_features/:id',auth.requiredToken,other_ct.deleteFeatures)
+route.delete('/admin/delete_features/:id',auth.requiredToken,other_ct.deleteFeatures)
 
 
 //***************************************************************************** */
 // auth
 //***************************************************************************** */
 // Verify Token
-route.post('/verifyToken',auth.requiredToken,auth.checkToken)
+route.post('/admin/verifyToken',auth.requiredToken,auth.checkToken)
 
 //***************************************************************************** */
 //Line
 //***************************************************************************** */
-route.get('/lineN',other_ct.lineNotify)
+route.get('/admin/lineN',other_ct.lineNotify)
 module.exports = route ;

@@ -38,6 +38,13 @@ module.exports.userOverview = (req,res) => {
         FROM user_report_users
         GROUP BY userId
     `
+
+    sqlBannedUser =`
+        SELECT 
+            COUNT(*) AS bannedUser
+        FROM users 
+        WHERE displayStatus = 0
+    `
     let data = {}
     dbConn.query(sqlAllUser,(err,result)=>{
         if(err)err_service.errorNotification(err,'user Overview => all user')
@@ -48,9 +55,13 @@ module.exports.userOverview = (req,res) => {
             dbConn.query(sqlUserReport,(err,result)=>{
                 if(err)err_service.errorNotification(err,'user Overview => user report  ')
                 data.userReport = result.length
-                res.send({
-                    status:true,
-                    data:data
+                dbConn.query(sqlBannedUser,(err,result)=>{
+                    if(err)err_service.errorNotification(err,'user Overview => banne user  ')
+                    data.bannedUser = result[0].bannedUser
+                    res.send({
+                        status:true,
+                        data:data
+                    })
                 })
             })
         })
@@ -277,23 +288,61 @@ module.exports.addNewMember = (req,res) => {
     phone = req.body.phone
     organization = req.body.organization
     image = req.body.gallery[0]
-    dbConn.query(`INSERT INTO users(userId,displayName,fname,lname,pictureUrl,createdAt,updateAt,packageId,roleId,subscriptionPeriodId,packageExpire)
-                VALUES(?,?,?,?,?,?,?,?,2,1,ADDDATE(CURRENT_TIMESTAMP(), INTERVAL +30 DAY)) `,
-                [userId,userName,fname,lname,image,date,date,package_id],(err,result)=>{
-                    if(err)err_service.errorNotification(err,'add new member => users table')
-                    dbConn.query('SELECT id FROM users WHERE pictureUrl =? ',[image],(err,result)=>{
-                        if(err)err_service.errorNotification(err,'add new member => get id')
-                       id = result[0].id
-                        dbConn.query(`INSERT INTO user_account_details(userId,email,phone,organization)
-                                    VALUES(?,?,?,?)`,[id,email,phone,organization],(err,result)=>{
-                                        if(err)err_service.errorNotification(err,'add new member => user_account_details table')
-                                        res.send({
-                                            status:true,
-                                            msg:'insert success'
-                                        })
-                                    })
-                    })
+
+    sqlInsertUser = `
+        INSERT INTO users(
+                        userId,
+                        displayName,
+                        fname,
+                        lname,
+                        pictureUrl,
+                        createdAt,
+                        updateAt,
+                        packageId,
+                        displayStatus,
+                        roleId,
+                        subscriptionPeriodId,
+                        packageExpire)
+                VALUES( '${userId}',
+                        '${userName}',
+                        '${fname}',
+                        '${lname}',
+                        '${image}',
+                        '${date}',
+                        '${date}',
+                        '${package_id}',
+                        1,
+                        2,
+                        1,
+                        ADDDATE(CURRENT_TIMESTAMP(),
+                        INTERVAL +30 DAY))
+    `
+    dbConn.query(sqlInsertUser,(err,result)=>{
+        if(err)err_service.errorNotification(err,'add new member => users table')
+        dbConn.query('SELECT id FROM users WHERE pictureUrl =? ',[image],(err,result)=>{
+            if(err)err_service.errorNotification(err,'add new member => get id')
+            id = result[0].id
+            sqlInsertUserDetail = `
+                INSERT INTO user_account_details(
+                    userId,
+                    email,
+                    phone,
+                    organization)
+                VALUES(
+                    '${id}',
+                    '${email}',
+                    '${phone}',
+                    '${organization}')
+            `
+            dbConn.query(sqlInsertUserDetail,(err,result)=>{
+                if(err)err_service.errorNotification(err,'add new member => user_account_details table')
+                res.send({
+                    status:true,
+                    msg:'insert success'
                 })
+            })
+        })
+    })
 }
 //update user
 module.exports.updateUser = (req,res) => {
@@ -463,8 +512,10 @@ module.exports.getUserById = async (req, res) => {
 //get all users
 module.exports.getAlluserList = (req, res) => {
     console.log(req.body);
-    const sql = `SELECT users.* , users.userId AS userIdLine ,
-                user_account_details.* FROM users
+    const sql = `SELECT 
+                    users.* , 
+                    users.userId AS userIdLine ,
+                    user_account_details.* FROM users
                 INNER JOIN user_account_details ON users.id = user_account_details.userId
                 ORDER BY users.id DESC LIMIT ?,?;`
     dbConn.query(sql,[req.body.items,req.body.size],(err,result)=>{
@@ -586,6 +637,36 @@ module.exports.deleteCompareProperty = (req,res)=>{
         res.send({
             status:true,
             msg:'ลบสำเร็จ'
+        })
+    })
+}
+
+//change status user (banned)
+module.exports.changeStatusUser = (req,res) => {
+    console.log('ssss');
+    dbConn.query('SELECT displayStatus FROM users WHERE id = ?',[req.params.id],(err,result)=>{
+        if(err) err_service.errorNotification(err,'change status users => get status by id')
+        console.log(result[0].displayStatus);
+        let newStatus
+        if(result[0].displayStatus === 0){
+            newStatus = 1
+        }else if(result[0].displayStatus === 1){
+            newStatus = 0
+        }
+        dbConn.query('UPDATE users SET displayStatus = ? WHERE id = ?',[newStatus,req.params.id],(err,result)=>{
+            if(err) err_service.errorNotification(err,'change status users => chang status')
+            if(newStatus === 1){
+                res.send({
+                    status:true,
+                    msg:'ปลดการระงับบัญชีเรียบร้อย'
+                })
+            }else if(newStatus === 0){
+                res.send({
+                    status:true,
+                    msg:'ระงับบัญชีผู้ใช้งานเรียบร้อย'
+                })
+            }
+
         })
     })
 }
