@@ -50,7 +50,11 @@ app.use('/line', require('./routes/LineNotify'))
 app.use('/detailReport', require('./routes/DetailReport'))
 
 //admin route
+
+const route = require('./backend_admin/route_admin')
 app.use(require('./backend_admin/route_admin'))
+
+//app.use('/admin', require('./backend_admin/route_admin'))
 
 app.listen(PORT || 3000, () => {
   console.log('server is running on port: '+PORT); 

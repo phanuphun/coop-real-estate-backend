@@ -57,6 +57,7 @@ module.exports = {
           roleId: req.body.roleId,
           subscriptionPeriodId: req.body.subscriptionPeriodId,
           packageExpire: req.body.packageExpire,
+          displayStatus: 1
         });
 
         let userLatest = await Users.findOne({
@@ -87,8 +88,24 @@ module.exports = {
         let token = jwt.sign({ userId: response.id }, SECRET, {
           expiresIn: "2h",
         });
-        res.send({ token: token, packageExpire: packageExpire });
+        res.send({ status: 1, token: token, packageExpire: packageExpire });
       } else {
+
+        let bannedUser = await Users.findOne({
+          attributes: ['id'],
+          where: {
+            userId: req.body.userId,
+            displayStatus: 0 || false
+          }
+        })
+
+        if (bannedUser) {
+          return res.send({ status: 2 , 
+            message: 
+            `บัญชีของคุณถูกระงับการใช้งาน
+             You have been banned.`})
+        }
+
         let packageExpire = await Users.findOne({
           where: {
             userId: req.body.userId,
@@ -102,7 +119,7 @@ module.exports = {
         let token = jwt.sign({ userId: existUser.id}, SECRET, {
           expiresIn: "2h",
         });
-        res.send({ token: token, packageExpire: packageExpire });
+        res.send({ status: 1, token: token, packageExpire: packageExpire });
       }
     } catch (err) {
       res.status(500).send(err.message);
@@ -230,6 +247,7 @@ module.exports = {
         FROM users
         INNER JOIN user_account_details detail on detail.userId = users.id
         INNER JOIN user_sub_props on user_sub_props.userId = users.id
+        where (users.packageExpire > cast(now() as date) and users.packageId != 1) or packageId = 1
         ORDER BY users.packageId desc
         `
       )

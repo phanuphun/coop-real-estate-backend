@@ -34,6 +34,9 @@ module.exports = (sequelize, Sequelize) => {
         },
         packageExpire: {
             type: Sequelize.DATE
+        },
+        displayStatus:{
+            type: Sequelize.BOOLEAN
         }
     })
     return Users;
