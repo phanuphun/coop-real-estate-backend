@@ -4,6 +4,58 @@ const err_service = require('./../../service/err_service')
 //***************************************************************************** */
 // Package
 //***************************************************************************** */
+// package Overview
+module.exports.packageOverview = (req,res) => {
+    sqlGetPackageLength = `
+        SELECT 
+            COUNT(*) AS packageValue
+        FROM users
+        GROUP BY packageId
+        ORDER BY packageId ASC;
+    `
+
+    sqlGetPackageName = `
+        SELECT
+            name
+        FROM package
+        ORDER BY id ASC;
+    `
+    let data = {}
+    dbConn.query(sqlGetPackageLength,(err,result)=>{
+        if (err) err_service.errorNotification(err,'package overview => package value')
+        let packageValue = []
+        for(let i =0 ; i < result.length ; i++){
+            packageValue.push(result[i].packageValue)
+        }
+        let allUserLength = packageValue.reduce((sum, a) => sum + a, 0)
+
+        data.packageValue = packageValue
+        dbConn.query(sqlGetPackageName,(err,result)=>{
+            if (err) err_service.errorNotification(err,'package overview => package name ')
+            let packageName = []
+            let packageValuePercent = []
+            for(let i =0 ; i < result.length ; i++){
+                packageName.push(result[i].name)
+            }
+            for(let i = 0 ; i < result.length ; i++){
+                let value = ((packageValue[i]/allUserLength)*100)
+                if(i < packageValue.length){
+                    packageValuePercent.push(Math.round(value))
+                }else{
+                    packageValuePercent.push(0)
+                }
+            }
+            data.packageValuePercent = packageValuePercent
+            data.packageName = packageName
+            res.send({
+                status:true,
+                data:data
+            })
+        })
+
+    })
+}
+
 //get all Package
 module.exports.getPackageName = (req, res) => {
     dbConn.query("SELECT * FROM package", (err, result) => {

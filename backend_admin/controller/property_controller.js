@@ -28,8 +28,8 @@ module.exports.searchProperty = (req,res) => {
     INNER JOIN property_purposes ON user_sub_props.propFor = property_purposes.id
     INNER JOIN property_types ON user_sub_props.propType = property_types.id
     INNER JOIN user_sub_prop_additionals ON user_sub_props.id = user_sub_prop_additionals.propertyId
-    INNER JOIN sub_districts ON user_sub_props.addressId = sub_districts.id
-    INNER JOIN districts ON districts.id = sub_districts.DistrictId
+    INNER JOIN subdistricts ON user_sub_props.addressId = subdistricts.id
+    INNER JOIN districts ON districts.id = subdistricts.DistrictId
     INNER JOIN provinces ON provinces.id = districts.ProvinceId
     WHERE
     (
@@ -38,7 +38,7 @@ module.exports.searchProperty = (req,res) => {
         AND (user_sub_props.propFor = ${purpose}  OR ${purpose} is null)
         AND (provinces.id = ${province} OR ${province} is null)
         AND (districts.id = ${districts} OR ${districts} is null)
-        AND (sub_districts.id = ${subDistrict} OR ${subDistrict} is null)
+        AND (subdistricts.id = ${subDistrict} OR ${subDistrict} is null)
     )
     GROUP BY user_sub_prop_galleries.propertyId
     `
@@ -59,8 +59,8 @@ module.exports.searchProperty = (req,res) => {
     INNER JOIN property_purposes ON user_sub_props.propFor = property_purposes.id
     INNER JOIN property_types ON user_sub_props.propType = property_types.id
     INNER JOIN user_sub_prop_additionals ON user_sub_props.id = user_sub_prop_additionals.propertyId
-    INNER JOIN sub_districts ON user_sub_props.addressId = sub_districts.id
-    INNER JOIN districts ON districts.id = sub_districts.DistrictId
+    INNER JOIN subdistricts ON user_sub_props.addressId = subdistricts.id
+    INNER JOIN districts ON districts.id = subdistricts.DistrictId
     INNER JOIN provinces ON provinces.id = districts.ProvinceId
     WHERE
     (
@@ -69,7 +69,7 @@ module.exports.searchProperty = (req,res) => {
         AND (user_sub_props.propFor = ${purpose}  OR ${purpose} is null)
         AND (provinces.id = ${province} OR ${province} is null)
         AND (districts.id = ${districts} OR ${districts} is null)
-        AND (sub_districts.id = ${subDistrict} OR ${subDistrict} is null)
+        AND (subdistricts.id = ${subDistrict} OR ${subDistrict} is null)
     )
     GROUP BY user_sub_prop_galleries.propertyId
     ORDER BY user_sub_props.id DESC
@@ -316,9 +316,9 @@ module.exports.getPropertyByID = (req, res) => {
 
                         // qry เอาที่อยู่จากรหัสตำบล
                         // qry เอาชื่อตำบล
-                        sql_sub_districts = 'SELECT * FROM `sub_districts` WHERE id = ?;'
-                        dbConn.query(sql_sub_districts,[subDistrictsID], (err,result)=>{
-                            if(err) err_service.errorNotification(err,'get property by id => get sub_districts ')
+                        sql_subdistricts = 'SELECT * FROM `subdistricts` WHERE id = ?;'
+                        dbConn.query(sql_subdistricts,[subDistrictsID], (err,result)=>{
+                            if(err) err_service.errorNotification(err,'get property by id => get subdistricts ')
                             if(result.length === 1){
                                 DistrictsID = result[0].DistrictId
                                 realData.address.subDistricts =  result[0].name_th

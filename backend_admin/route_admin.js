@@ -245,6 +245,8 @@ route.get('/admin/subDistricts/zipcode/:id',other_ct.getZipCode);
 //***************************************************************************** */
 //package
 //***************************************************************************** */
+// package overview 
+route.get('/admin/packageOverview',auth.requiredToken,package_ct.packageOverview)
 //get all package
 route.get('/admin/package',auth.requiredToken,package_ct.getPackageName)
 

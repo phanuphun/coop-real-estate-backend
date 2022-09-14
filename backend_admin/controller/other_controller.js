@@ -26,12 +26,12 @@ module.exports.getDistricts = (req,res) => {
         })
     })
 }
-// get all sub_districts
+// get all subdistricts
 module.exports.getSubDistricts = (req,res) => {
-    dbConn.query('SELECT * FROM `sub_districts` ORDER BY name_th ASC',(err,result)=>{
-        if(err) err_service.errorNotification(err,'get sub_districts')
+    dbConn.query('SELECT * FROM `subdistricts` ORDER BY name_th ASC',(err,result)=>{
+        if(err) err_service.errorNotification(err,'get subdistricts')
         res.send({
-            msg:'get Districts sub_districts',
+            msg:'get Districts subdistricts',
             data: result
         })
     })
@@ -47,13 +47,13 @@ module.exports.getDistrictsByID = (req,res) => {
         })
     })
 }
-// get sub_districts' By districts id
+// get subdistricts' By districts id
 module.exports.getSubDistrictsByDtID = (req,res) => {
     districts_id = req.params.id
-    dbConn.query('SELECT * FROM `sub_districts` WHERE DistrictId  = ? ORDER BY name_th ASC',[districts_id],(err,result)=>{
-        if(err) err_service.errorNotification(err,'sub_districts by districts id')
+    dbConn.query('SELECT * FROM `subdistricts` WHERE DistrictId  = ? ORDER BY name_th ASC',[districts_id],(err,result)=>{
+        if(err) err_service.errorNotification(err,'subdistricts by districts id')
         res.send({
-            msg:'get sub_districts By districts ID succcess',
+            msg:'get subdistricts By districts ID succcess',
             data: result
         })
     })
@@ -62,7 +62,7 @@ module.exports.getSubDistrictsByDtID = (req,res) => {
 module.exports.getZipCode = (req,res) => {
     subD_id = req.params.id
     console.log(subD_id);
-    dbConn.query('SELECT * FROM `sub_districts` WHERE id  = ? ORDER BY name_th ASC',[subD_id],(err,result)=>{
+    dbConn.query('SELECT * FROM `subdistricts` WHERE id  = ? ORDER BY name_th ASC',[subD_id],(err,result)=>{
         if(err) err_service.errorNotification(err,'get zip-code by sub-district id')
         res.send({
             msg:'get zipCode By ID succcess',
@@ -89,15 +89,15 @@ module.exports.getUserReq = (req,res) => {
         users.lname AS userLname,
         property_types.name_th AS propertyType,
         property_purposes.name_th AS propertyPurpose,
-        sub_districts.name_th AS subDistrict,
+        subdistricts.name_th AS subDistrict,
         districts.name_th AS districts,
         provinces.name_th AS province
     FROM user_requirements
     INNER JOIN users ON users.id = user_requirements.userId
     INNER JOIN property_types ON property_types.id = user_requirements.typeId
     INNER JOIN property_purposes ON property_purposes.id = user_requirements.purposeId
-    INNER JOIN sub_districts ON sub_districts.id = user_requirements.subDistrictId
-    INNER JOIN districts ON districts.id = sub_districts.DistrictId
+    INNER JOIN subdistricts ON subdistricts.id = user_requirements.subDistrictId
+    INNER JOIN districts ON districts.id = subdistricts.DistrictId
     INNER JOIN provinces ON provinces.id = districts.ProvinceId
     WHERE user_requirements.userId = ${req.params.id}
     ORDER BY user_requirements.id DESC ;
