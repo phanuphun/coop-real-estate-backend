@@ -4,10 +4,12 @@ const {
   CHANNEL_ACCESS_TOKEN,
   CHANNEL_SECRET,
   NGROK,
+  LINE_NOTIFY_KEY ,
+  ADMIN_PATH
 } = require("../config/config");
 const line = require("@line/bot-sdk");
 const lineNotify = require("line-notify-nodejs")(
-  "L9OT2cT4mroHBd9zQwk8VRrdY5nTLa5CtjvNT6JfQbU"
+  LINE_NOTIFY_KEY 
 );
 const {
   Users,
@@ -879,7 +881,7 @@ module.exports = {
 ระยะเวลา: ${message.period} เดือน
 ราคา: ${message.price}
 โอนเมื่อ: ${message.date}
-http://localhost:4200/realEstate/money-transfer/${message.id}`,
+${ADMIN_PATH}/realEstate/money-transfer/${message.id}`,
         imageThumbnail: slipImage,
         imageFullsize: slipImage,
       });

@@ -11,7 +11,9 @@ const DATABASE = process.env.DATABASE
 const SECRET = process.env.SECRET
 const CHANNEL_ACCESS_TOKEN = process.env.CHANNEL_ACCESS_TOKEN
 const CHANNEL_SECRET = process.env.CHANNEL_SECRET
+const LINE_NOTIFY_KEY  = process.env.LINE_NOTIFY_KEY
 const NGROK = process.env.NGROK
+const ADMIN_PATH = process.env.ADMIN_PATH
 module.exports = {
     HOST,
     PORT,
@@ -21,5 +23,7 @@ module.exports = {
     SECRET,
     CHANNEL_ACCESS_TOKEN,
     CHANNEL_SECRET,
-    NGROK
+    LINE_NOTIFY_KEY,
+    NGROK,
+    ADMIN_PATH
 }
