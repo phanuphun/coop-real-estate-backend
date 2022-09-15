@@ -11,46 +11,46 @@ let multer_s = require('./../../service/multer')
 module.exports.moneyTransferOverview = (req,res) => {
     sqlPopularPackage = `
         SELECT
-            COUNT(money_transfer.packageId) AS packageLength ,
-            package.name AS packageName
-        FROM money_transfer
-        INNER JOIN package ON package.id = money_transfer.packageId
-        WHERE money_transfer.confirm = 1
-        GROUP BY money_transfer.packageId
+            COUNT(money_transfers.packageId) AS packageLength ,
+            packages.name AS packageName
+        FROM money_transfers
+        INNER JOIN packages ON packages.id = money_transfers.packageId
+        WHERE money_transfers.confirm = 1
+        GROUP BY money_transfers.packageId
         ORDER BY packageLength DESC
         LIMIT 1;
     `
     sqlMostSubScription = `
         SELECT
-            COUNT(money_transfer.userId) AS userLength ,
+            COUNT(money_transfers.userId) AS userLength ,
             users.fname AS userFname,
             users.lname AS userLname,
             users.pictureUrl AS userImage
-        FROM money_transfer
-        INNER JOIN users ON users.id = money_transfer.userId
-        WHERE money_transfer.confirm = 1
-        GROUP BY money_transfer.userId
+        FROM money_transfers
+        INNER JOIN users ON users.id = money_transfers.userId
+        WHERE money_transfers.confirm = 1
+        GROUP BY money_transfers.userId
         ORDER BY userLength DESC;
     `
     sqlSubsciberLength =`
         SELECT
-            COUNT(money_transfer.userId) AS length
-        FROM money_transfer
-        INNER JOIN users ON users.id = money_transfer.userId
-        WHERE (money_transfer.confirm = 1  AND (users.packageExpire > cast(now() AS date)))
-        GROUP BY money_transfer.userId
+            COUNT(money_transfers.userId) AS length
+        FROM money_transfers
+        INNER JOIN users ON users.id = money_transfers.userId
+        WHERE (money_transfers.confirm = 1  AND (users.packageExpire > cast(now() AS date)))
+        GROUP BY money_transfers.userId
         ORDER BY length DESC;
     `
     sqlWaitingConfirm =`
         SELECT 
             COUNT(*) AS waitingConfirm
-        FROM money_transfer
+        FROM money_transfers
         WHERE confirm = 0;
     `
     sqlAllmoneyTransfer =`
         SELECT 
             COUNT(*) AS allMoneyTransfer
-        FROM money_transfer;
+        FROM money_transfers;
         `
     let data = {}
     dbConn.query(sqlPopularPackage,(err,result)=>{
@@ -103,19 +103,19 @@ module.exports.addMoneyTransfer = (req,res) => {
 
     sqlLineNotify = `
     SELECT
-        money_transfer.* ,
+        money_transfers.* ,
         users.fname AS userFname ,
         users.lname AS userLname ,
         users.id AS userId ,
         users.pictureUrl AS userImage ,
-        package.name AS packageName
-    FROM money_transfer
-    INNER JOIN users ON money_transfer.userId = users.id
-    INNER JOIN package ON money_transfer.packageId = package.id
-    WHERE money_transfer.userId = ${userId}
-    ORDER BY money_transfer.id DESC LIMIT 1;`
+        packages.name AS packageName
+    FROM money_transfers
+    INNER JOIN users ON money_transfers.userId = users.id
+    INNER JOIN packages ON money_transfers.packageId = packages.id
+    WHERE money_transfers.userId = ${userId}
+    ORDER BY money_transfers.id DESC LIMIT 1;`
 
-    sql=`INSERT INTO money_transfer(userId,packageId,periodId,price,pictureUrl,dateTransfer)
+    sql=`INSERT INTO money_transfers(userId,packageId,periodId,price,pictureUrl,dateTransfer)
         VALUES(${userId},${packageId},'${packagePeriod}','${packagePrice}','${image}','${dateTransfer}');`
         dbConn.query(sql,(err,result)=>{
             if(err)err_service.errorNotification(err,'add money transfer')
@@ -136,20 +136,20 @@ module.exports.getAllMoneyTransfer = (req,res) => {
     sqlLength = `
     SELECT
         COUNT(*) AS length
-    FROM money_transfer`
+    FROM money_transfers`
 
     sql = `
     SELECT
-        money_transfer.* ,
+        money_transfers.* ,
         users.fname AS userFname ,
         users.lname AS userLname ,
         users.id AS userId ,
         users.pictureUrl AS userImage ,
-        package.name AS packageName
-    FROM money_transfer
-    INNER JOIN users ON money_transfer.userId = users.id
-    INNER JOIN package ON money_transfer.packageId = package.id
-    ORDER BY FIELD(money_transfer.confirm,'0') DESC , money_transfer.id DESC
+        packages.name AS packageName
+    FROM money_transfers
+    INNER JOIN users ON money_transfers.userId = users.id
+    INNER JOIN packages ON money_transfers.packageId = packages.id
+    ORDER BY FIELD(money_transfers.confirm,'0') DESC , money_transfers.id DESC
     LIMIT ${req.body.items},${req.body.size} ;`
     dbConn.query(sqlLength,(err,result)=>{
         length = result[0].length
@@ -170,23 +170,23 @@ module.exports.getNewMoneyTransfer = (req,res) => {
     sqlLength = `
         SELECT
             COUNT(*) AS length
-        FROM  money_transfer
+        FROM  money_transfers
         WHERE confirm = 0
     `
 
     sql = `
     SELECT
-        money_transfer.* ,
+        money_transfers.* ,
         users.fname AS userFname ,
         users.lname AS userLname ,
         users.id AS userId ,
         users.pictureUrl AS userImage ,
-        package.name AS packageName
-    FROM money_transfer
-    INNER JOIN users ON money_transfer.userId = users.id
-    INNER JOIN package ON money_transfer.packageId = package.id
-    WHERE money_transfer.confirm = 0
-    ORDER BY money_transfer.id DESC
+        packages.name AS packageName
+    FROM money_transfers
+    INNER JOIN users ON money_transfers.userId = users.id
+    INNER JOIN packages ON money_transfers.packageId = packages.id
+    WHERE money_transfers.confirm = 0
+    ORDER BY money_transfers.id DESC
     LIMIT 10;`
 
 
@@ -211,17 +211,17 @@ module.exports.getNewMoneyTransfer = (req,res) => {
 module.exports.getMoneyTransferByUserId = (req,res)=> {
     sql = `
     SELECT
-        money_transfer.* ,
+        money_transfers.* ,
         users.fname AS userFname ,
         users.lname AS userLname ,
         users.id AS userId ,
         users.pictureUrl AS userImage ,
-        package.name AS packageName
-    FROM money_transfer
-    INNER JOIN users ON money_transfer.userId = users.id
-    INNER JOIN package ON money_transfer.packageId = package.id
-    WHERE money_transfer.userId = ${req.params.id}
-    ORDER BY FIELD(money_transfer.confirm,'0') DESC , money_transfer.id DESC
+        packages.name AS packageName
+    FROM money_transfers
+    INNER JOIN users ON money_transfers.userId = users.id
+    INNER JOIN packages ON money_transfers.packageId = packages.id
+    WHERE money_transfers.userId = ${req.params.id}
+    ORDER BY FIELD(money_transfers.confirm,'0') DESC , money_transfers.id DESC
     `
     dbConn.query(sql,(err,result)=>{
         if(err) err_service.errorNotification(err,'get all money transfer list')
@@ -244,14 +244,14 @@ module.exports.confirmMoneyTransfer = (req,res) => {
     packageId = req.body.packageId
 
     sqlUpdateConfirm = `
-        UPDATE money_transfer
+        UPDATE money_transfers
         SET confirm = ${moneyTransferConfirm}
         WHERE id = ${id};
         `
     sqlGetPeriod = `
         SELECT
             period
-        FROM subscription_period
+        FROM subscription_periods
         WHERE id = ${periodId};
     `
     sqlOldExpirePackage = `
@@ -318,14 +318,14 @@ module.exports.deleteMoneyTransfer = (req,res) => {
     sqlGetImage = `
         SELECT
             pictureUrl
-        FROM money_transfer
+        FROM money_transfers
         WHERE id = ${id}
     `
     dbConn.query(sqlGetImage,(err,result)=>{
         if(err) err_service.errorNotification(err,'delete money transfer => get image')
             let image = result[0].pictureUrl
             multer_s.deleteImage('payment/'+image)
-            dbConn.query(`DELETE FROM money_transfer WHERE id = ${id}`,(err,result)=>{
+            dbConn.query(`DELETE FROM money_transfers WHERE id = ${id}`,(err,result)=>{
                 if(err) err_service.errorNotification(err,'delete money transfer')
                 res.send({
                     status:true,
@@ -348,27 +348,27 @@ module.exports.seachMoneyTransfer = (req,res) => {
             users.fname AS userFname,
             users.lname AS userLname,
             users.pictureUrl AS userImage ,
-            money_transfer.*
-        FROM money_transfer
-        INNER JOIN users ON money_transfer.userId = users.id
+            money_transfers.*
+        FROM money_transfers
+        INNER JOIN users ON money_transfers.userId = users.id
         WHERE
         (
             (
                 ((CONCAT(users.fname,' ',users.lname) LIKE ${seachText}) OR  ${seachText} is null)
                 OR ((CONCAT(users.fname,'',users.lname) LIKE  ${seachText}) OR  ${seachText} is null)
             )
-            AND (money_transfer.confirm = ${confirmStatus} OR ${confirmStatus} is null)
+            AND (money_transfers.confirm = ${confirmStatus} OR ${confirmStatus} is null)
         );`
     sql = `
         SELECT
             users.fname AS userFname,
             users.lname AS userLname,
             users.pictureUrl AS userImage ,
-            package.name AS packageName,
-            money_transfer.*
-        FROM money_transfer
-        INNER JOIN users ON money_transfer.userId = users.id
-        INNER JOIN package ON package.id = money_transfer.packageId
+            packages.name AS packageName,
+            money_transfers.*
+        FROM money_transfers
+        INNER JOIN users ON money_transfers.userId = users.id
+        INNER JOIN packages ON packages.id = money_transfers.packageId
         WHERE
         (
             (
@@ -376,10 +376,10 @@ module.exports.seachMoneyTransfer = (req,res) => {
                 OR ((CONCAT(users.fname,'',users.lname) LIKE  ${seachText}) OR  ${seachText} is null)
             )
             AND
-                (money_transfer.confirm = ${confirmStatus} OR ${confirmStatus} is null)
+                (money_transfers.confirm = ${confirmStatus} OR ${confirmStatus} is null)
 
         )
-        ORDER BY money_transfer.id DESC
+        ORDER BY money_transfers.id DESC
         LIMIT ${limit.items},${limit.size};`
         // console.log(sql);
     dbConn.query(sqlLength,(err,result)=>{
@@ -402,14 +402,14 @@ module.exports.deleteMoneyTransferByDeleteUser = (id) => {
     sqlGetImage = `
         SELECT
             pictureUrl
-        FROM money_transfer
+        FROM money_transfers
         WHERE id = ${id}
     `
     dbConn.query(sqlGetImage,(err,result)=>{
         if(err) err_service.errorNotification(err,'delete money transfer => get image')
             let image = result[0].pictureUrl
             multer_s.deleteImage('payment/'+image)
-            dbConn.query(`DELETE FROM money_transfer WHERE id = ${id}`,(err,result)=>{
+            dbConn.query(`DELETE FROM money_transfers WHERE id = ${id}`,(err,result)=>{
                 if(err) err_service.errorNotification(err,'delete money transfer')
             })
     })

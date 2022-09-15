@@ -4,6 +4,16 @@ const app = express();
 // const bodyParser = require("body-parser");
 const path = require("path");
 const { PORT } = require('./config/config')
+const route_admin = require('./backend_admin/route_admin')
+
+app.use(cors({
+  "origin": "*",
+  "methods": "GET,HEAD,PUT,PATCH,POST,DELETE",
+  "allowedHeaders": "Authorization,Content-Type",
+  "preflightContinue": false,
+  "optionsSuccessStatus": 204
+}))
+
 
 app.use(cors());
 app.use(express.json({extended: false}));
@@ -50,11 +60,7 @@ app.use('/line', require('./routes/LineNotify'))
 app.use('/detailReport', require('./routes/DetailReport'))
 
 //admin route
-
-const route = require('./backend_admin/route_admin')
-app.use(require('./backend_admin/route_admin'))
-
-//app.use('/admin', require('./backend_admin/route_admin'))
+app.use(route_admin)
 
 app.listen(PORT || 3000, () => {
   console.log('server is running on port: '+PORT); 

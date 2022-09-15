@@ -17,7 +17,7 @@ module.exports.packageOverview = (req,res) => {
     sqlGetPackageName = `
         SELECT
             name
-        FROM package
+        FROM packages
         ORDER BY id ASC;
     `
     let data = {}
@@ -58,7 +58,7 @@ module.exports.packageOverview = (req,res) => {
 
 //get all Package
 module.exports.getPackageName = (req, res) => {
-    dbConn.query("SELECT * FROM package", (err, result) => {
+    dbConn.query("SELECT * FROM packages", (err, result) => {
         if (err) err_service.errorNotification(err,'get all package')
         res.send({
             message: "package list ",
@@ -70,7 +70,7 @@ module.exports.getPackageName = (req, res) => {
 module.exports.insertPackage = (req, res) => {
     let packageName = req.body.packageName;
 
-    dbConn.query('SELECT * FROM package',(err,result)=>{
+    dbConn.query('SELECT * FROM packages',(err,result)=>{
         if(err) err_service.errorNotification(err,'insert package => check limit')
         if(result.length >= 10){
             res.send({
@@ -79,7 +79,7 @@ module.exports.insertPackage = (req, res) => {
             })
         }else{
             // เช็คชื่อสถานะที่ซ้ำ
-            sql_check_packageName =  `SELECT * FROM package WHERE name = ?`
+            sql_check_packageName =  `SELECT * FROM packages WHERE name = ?`
             dbConn.query(sql_check_packageName,[packageName],(err,result)=>{
                 if(err)err_service.errorNotification(err,'add new package => check package name ')
                 if(result.length >= 1){
@@ -93,7 +93,7 @@ module.exports.insertPackage = (req, res) => {
                         msg:'ชื่อแพ็คเกจไม่ถูกต้อง !'
                     })
                 }else if(result){
-                    sql_insert_packageName = `INSERT INTO package(name) VALUES (?)`;
+                    sql_insert_packageName = `INSERT INTO packages(name) VALUES (?)`;
                     dbConn.query(sql_insert_packageName, [packageName], (err, result) => {
                         if (err) err_service.errorNotification(err,'add new package => insert new package')
                         res.send({
@@ -127,7 +127,7 @@ module.exports.deletePackage = (req,res) =>{
                     msg:'มีผู้ใช้งานแพ็คเกจนี้อยู่ จึงไม่สามารถลบได้'
                 })
             }else{
-                sql_delete_memberStatus = 'DELETE FROM package WHERE id = ?'
+                sql_delete_memberStatus = 'DELETE FROM packages WHERE id = ?'
                 dbConn.query(sql_delete_memberStatus,[packageId],(err,result)=>{
                     if(err) err_service.errorNotification(err,'delete package')
                     res.send({
@@ -153,7 +153,7 @@ module.exports.updatePackage = (req,res) =>{
 
     sql =`
         UPDATE
-            package
+            packages
         SET name = '${name}' ,
             description = '${des}' ,
             price1M = ${price1M} ,

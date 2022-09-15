@@ -8,11 +8,11 @@ const err_service = require('./../../service/err_service')
 module.exports.getFAQ = (req,res) => {
     sql = `
     SELECT
-        faq.* ,
-        faq_category.faqCategoryName
-    FROM faq
-    INNER JOIN faq_category ON faq_category.faqCategoryId = faq.category
-    ORDER BY faq.category ASC;`
+        faqs.* ,
+        faq_categories.faqCategoryName
+    FROM faqs
+    INNER JOIN faq_categories ON faq_categories.faqCategoryId = faqs.category
+    ORDER BY faqs.category ASC;`
 
     sqlHelpful = `
     SELECT
@@ -43,7 +43,7 @@ module.exports.getFAQ = (req,res) => {
 }
 //get FAQ By Category ID
 module.exports.getFAQByCategory = (req,res) => {
-    dbConn.query('SELEcT * FROM faq WHERE category = ? ',[req.params.id],(err,result)=>{
+    dbConn.query('SELEcT * FROM faqs WHERE category = ? ',[req.params.id],(err,result)=>{
         if(err) err_service.errorNotification(err,'get FAQ By Category ID')
         res.send({
             status:true,
@@ -54,7 +54,7 @@ module.exports.getFAQByCategory = (req,res) => {
 }
 //get FAQ Category
 module.exports.getCategoryFAQ = (req,res) => {
-    dbConn.query('SELECT * FROM faq_category',(err,result)=>{
+    dbConn.query('SELECT * FROM faq_categories',(err,result)=>{
         if(err) err_service.errorNotification(err,'get Category FAQ')
         res.send({
             status:true,
@@ -65,7 +65,7 @@ module.exports.getCategoryFAQ = (req,res) => {
 }
 //get FAQ BY ID
 module.exports.getFAQByID = (req,res) => {
-    dbConn.query('SELEcT * FROM faq WHERE faqId = ?',[req.params.id],(err,result)=>{
+    dbConn.query('SELECT * FROM faqs WHERE faqId = ?',[req.params.id],(err,result)=>{
         if(err) err_service.errorNotification(err,'get FAQ by id')
         res.send({
             data:result,
@@ -76,7 +76,7 @@ module.exports.getFAQByID = (req,res) => {
 }
 //insert new FAQ
 module.exports.insertFAQ = (req,res) => {
-    dbConn.query('INSERT INTO faq(faqQ,faqA,category) VALUES(?,?,?)',[req.body.faq_Q,req.body.faq_A,req.body.faq_category],(err,result)=>{
+    dbConn.query('INSERT INTO faqs(faqQ,faqA,category) VALUES(?,?,?)',[req.body.faq_Q,req.body.faq_A,req.body.faq_category],(err,result)=>{
         if(err) err_service.errorNotification(err,'insertFAQ')
         res.send({
             status:true,
@@ -86,7 +86,7 @@ module.exports.insertFAQ = (req,res) => {
 }
 //update FAQ
 module.exports.updateFAQ = (req,res) => {
-    dbConn.query('UPDATE faq SET faqQ = ? , faqA = ? , category = ? WHERE faqId =  ? ',
+    dbConn.query('UPDATE faqs SET faqQ = ? , faqA = ? , category = ? WHERE faqId =  ? ',
     [req.body.faq_Q,req.body.faq_A,req.body.faq_category,req.body.faq_id],(err,result)=>{
         if(err) err_service.errorNotification(err,'updateFAQ')
         res.send({
@@ -98,7 +98,7 @@ module.exports.updateFAQ = (req,res) => {
 //delete FAQ
 module.exports.deleteFAQ = (req,res) => {
     id = req.params.id
-    dbConn.query('DELETE FROM faq WHERE faqId = ?',[id],(err,result)=>{
+    dbConn.query('DELETE FROM faqs WHERE faqId = ?',[id],(err,result)=>{
         if(err) err_service.errorNotification(err,'deleteFAQ')
         res.send({
             status:true,
@@ -108,7 +108,7 @@ module.exports.deleteFAQ = (req,res) => {
 }
 //change status FAQ (on-off)
 module.exports.changeStatusFAQ = (req,res) => {
-    dbConn.query('SELECT displayStatus FROM faq WHERE faqId = ?',[req.params.id],(err,result)=>{
+    dbConn.query('SELECT displayStatus FROM faqs WHERE faqId = ?',[req.params.id],(err,result)=>{
         if(err) err_service.errorNotification(err,'change status faq => get status by id')
         console.log(result[0].displayStatus);
         let newStatus
@@ -117,7 +117,7 @@ module.exports.changeStatusFAQ = (req,res) => {
         }else if(result[0].displayStatus === 1){
             newStatus = 0
         }
-        dbConn.query('UPDATE faq SET displayStatus = ? WHERE faqId = ?',[newStatus,req.params.id],(err,result)=>{
+        dbConn.query('UPDATE faqs SET displayStatus = ? WHERE faqId = ?',[newStatus,req.params.id],(err,result)=>{
             if(err) err_service.errorNotification(err,'change status faq => chang status')
             if(newStatus === 1){
                 res.send({

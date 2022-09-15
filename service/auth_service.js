@@ -2,11 +2,8 @@ const jwt = require("jsonwebtoken");
 
 //request token
 module.exports.requiredToken = (req,res,next) => {
-    console.log(req.headers);
-
     let headers = String(req.headers['authorization']).split(' ')[1];
-    console.log(headers);
-    // console.log('Required Headers Token ==> ',headers);
+    // console.log(headers);
     if(typeof headers !== 'undefined' && headers !==''){
         req.token = headers;
         if(verifyToken(headers)){
@@ -25,17 +22,6 @@ module.exports.requiredToken = (req,res,next) => {
         })
     }
 }
-
-//ตรวจสอบ token
-// module.exports.verifyToken = (token) => {
-//     return jwt.verify(token, "privatekey", (err, result) => {
-//         if (err) {
-//             return false
-//         } else {
-//             return true
-//         }
-//     });
-// }
 
 const verifyToken = (token) => {
     return jwt.verify(token, "privatekey", (err, result) => {
