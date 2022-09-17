@@ -8,10 +8,13 @@ const err_service = require('./../../service/err_service')
 module.exports.packageOverview = (req,res) => {
     sqlGetPackageLength = `
         SELECT 
-            COUNT(*) AS packageValue
+            COUNT(*) AS packageValue,
+            packages.name as packagesName,
+            packages.id as packagesId
         FROM users
-        GROUP BY packageId
-        ORDER BY packageId ASC;
+        INNER JOIN packages ON packages.id = users.packageId
+        GROUP BY packages.id
+        ORDER BY packages.id ASC;
     `
 
     sqlGetPackageName = `
@@ -21,23 +24,40 @@ module.exports.packageOverview = (req,res) => {
         ORDER BY id ASC;
     `
     let data = {}
-    dbConn.query(sqlGetPackageLength,(err,result)=>{
-        if (err) err_service.errorNotification(err,'package overview => package value')
-        let packageValue = []
-        for(let i =0 ; i < result.length ; i++){
-            packageValue.push(result[i].packageValue)
-        }
-        let allUserLength = packageValue.reduce((sum, a) => sum + a, 0)
 
-        data.packageValue = packageValue
-        dbConn.query(sqlGetPackageName,(err,result)=>{
-            if (err) err_service.errorNotification(err,'package overview => package name ')
-            let packageName = []
+
+    dbConn.query(sqlGetPackageName,(err,result)=>{
+        if (err) err_service.errorNotification(err,'package overview => package name ')
+        let packageName = []
+        for(let i =0 ; i < result.length ; i++){
+            packageName.push(result[i].name)
+        }
+        dbConn.query(sqlGetPackageLength,(err,result)=>{
+            if (err) err_service.errorNotification(err,'package overview => package value')
+            let packageValue = []
             let packageValuePercent = []
+            let packageNameResult = []
+            // check package name 
+            
+
             for(let i =0 ; i < result.length ; i++){
-                packageName.push(result[i].name)
+                packageValue.push(result[i].packageValue)
+                packageNameResult.push(result[i].packagesName)
             }
-            for(let i = 0 ; i < result.length ; i++){
+
+            for(let i = 0 ; i < packageName.length ; i++){
+                if(packageName[i] !== packageNameResult[i]){
+                    packageNameResult.splice(i,0,packageName[i])
+                    packageValue.splice(i,0,0)
+                    i = 0 ;
+                }
+            }
+
+            let allUserLength = packageValue.reduce((sum, a) => sum + a, 0)
+            data.packageValue = packageValue
+            
+            // find %
+            for(let i = 0 ; i < packageName.length ; i++){
                 let value = ((packageValue[i]/allUserLength)*100)
                 if(i < packageValue.length){
                     packageValuePercent.push(Math.round(value))
@@ -47,6 +67,7 @@ module.exports.packageOverview = (req,res) => {
             }
             data.packageValuePercent = packageValuePercent
             data.packageName = packageName
+            console.log('percent',data.packageValuePercent);
             res.send({
                 status:true,
                 data:data

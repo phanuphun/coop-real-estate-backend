@@ -3,11 +3,183 @@ let dbConn = require('../database')
 let err_service = require('./../../service/err_service')
 let line_ct = require('./other_controller')
 let multer_s = require('./../../service/multer')
+const dateAndTime = require('date-and-time')
 
 //***************************************************************************** */
 // money transfer
 //***************************************************************************** */
-// overview
+// inCome 
+module.exports.inComeChartData = (req,res) => {
+    sqlDailyIncome = `
+        SELECT 
+            COUNT(id) AS orderCount ,
+            SUM(price) AS totalDailyIncomePerDay ,
+            dateTransfer AS days
+        FROM money_transfers
+        WHERE confirm = 1 AND (dateTransfer BETWEEN ADDDATE(CURRENT_TIMESTAMP(), INTERVAL -6 DAY) AND CURRENT_TIMESTAMP())
+        GROUP BY CAST(dateTransfer AS DATE)
+        ORDER BY days ASC
+        LIMIT 7;
+    `
+    sqlMonthIncome = `
+        SELECT 
+            COUNT(id) AS orderCount ,
+            SUM(price) AS totalMonthIncomePerMonth ,
+            date_format(dateTransfer, '%m') AS monthNo
+        FROM money_transfers
+        WHERE confirm = 1 
+                AND 
+            (date_format(CURRENT_TIMESTAMP, '%Y') = date_format(dateTransfer, '%Y'))
+        GROUP BY monthNo
+        ORDER BY monthNo ASC
+        LIMIT 12;
+    `
+    sqlYearIncome = `
+        SELECT 
+            COUNT(id) AS orderCount ,
+            SUM(price) AS totalYearIncomePerYear ,
+            date_format(dateTransfer, '%Y') AS years
+        FROM money_transfers
+        WHERE confirm = 1 
+                AND 
+            (date_format(CURRENT_TIMESTAMP, '%Y') >= date_format(dateTransfer, '%Y'))
+        GROUP BY years
+        ORDER BY years ASC
+        LIMIT 5;
+    `
+
+    sqlAllIncome =`
+        SELECT 
+            SUM(price) AS totalIncome
+        FROM money_transfers
+        WHERE confirm = 1 
+    `
+
+    data = {}
+
+    dbConn.query(sqlDailyIncome,(err,result)=>{
+        if(err)err_service.errorNotification(err,'overview money transfer => daily income ')
+        let orderCount = []
+        let totalDailyIncomePerDay = []
+        let days = []
+        let oneWeeks = []
+        let dailyIncome = {} 
+        if(result.length > 0){
+            for(let i = 0 ; i < result.length ; i++){
+                orderCount[i] = result[i].orderCount
+                totalDailyIncomePerDay[i] = result[i].totalDailyIncomePerDay
+                days[i] = dateAndTime.format(result[i].days,'YYYY/MM/DD')
+            }
+            // get days 
+            // console.log('day => ',new Date(days[0]).getDate() +1 );
+            
+            dailyIncome.orderCount = orderCount
+            dailyIncome.totalDailyIncomePerDay = totalDailyIncomePerDay
+            dailyIncome.days = days
+            // console.log(dailyIncome.days );
+
+        }
+        dailyIncome.totalDailyIncome = totalDailyIncomePerDay.reduce((sum, a) => sum + a, 0)
+        dailyIncome.totalDailyOrderCount = orderCount.reduce((sum, a) => sum + a, 0)
+        data.dailyIncome = dailyIncome
+        // console.log(data.dailyIncome);
+        let dateNow = new Date()
+        oneWeeks[0] = dateAndTime.format(new Date(dateNow.setDate(dateNow.getDate())),'YYYY/MM/DD')
+        for (let i = 1 ; i < 7; i++) {
+            oneWeeks.push(dateAndTime.format(new Date(dateNow.setDate(dateNow.getDate()-1)),'YYYY/MM/DD'))
+        }
+        oneWeeks = oneWeeks.reverse()
+        for (let i = 0 , j = 0; i < oneWeeks.length ; i ++, j++) {
+            // console.log(new Date(oneWeeks[i]).getDate() + '==' + new Date(dailyIncome.days[j]).getDate())
+            // console.log(i, new Date(daily.days[i]).getDate() !== new Date(daily.oldDays[j]).getDate())
+            if (new Date(oneWeeks[i]).getDate() !== new Date(dailyIncome.days[j]).getDate()){
+                dailyIncome.totalDailyIncomePerDay.splice(i,0,0);
+                j-- ; 
+            }
+        }
+
+        dailyIncome.days = oneWeeks
+        
+        dbConn.query(sqlMonthIncome,(err,result)=>{
+            if(err)err_service.errorNotification(err,'overview money transfer => year income ')
+            let month = [
+                "มกราคม", 
+                "กุมภาพันธ์", 
+                "มีนาคม",
+                "เมษายน",
+                "พฤษภาคม",
+                "มิถุนายน",
+                "กรกฎาคม",
+                "สิงหาคม",
+                "กันยายน",
+                "ตุลาคม",
+                "พฤศจิกายน",
+                "ธันวาคม"
+            ]
+            let monthShort = [ "ม.ค.", "ก.พ.", "มี.ค.", "เม.ย.", "พ.ค.", "มิ.ย.", "ก.ค.", "ส.ค.", "ก.ย.", "ต.ค.", "พ.ย.", "ธ.ค."]
+            let totalMonthIncomePerMonth = [0,0,0,0,0,0,0,0,0,0,0,0] 
+            let monthIncome = {} 
+            for(let i = 0 , j = 0 ; i < 12 ; i++){
+                if(j < result.length){
+                    if(i === (parseInt(result[j].monthNo)-1)){
+                        totalMonthIncomePerMonth[i] = result[j].totalMonthIncomePerMonth
+                        // console.log(month[i]);
+                        j++ ;
+                    }
+                }
+            }
+            for(let i = 0 ; i < result.length ; i++) {
+                orderCount[i] = result[i].orderCount
+            }
+            monthIncome.totalMonthIncome = totalMonthIncomePerMonth.reduce((sum, a) => sum + a, 0)
+            monthIncome.totalMonthOrderCount = orderCount.reduce((sum, a) => sum + a, 0)
+            monthIncome.totalMonthIncomePerMonth = totalMonthIncomePerMonth
+            monthIncome.month = month
+            monthIncome.monthShort = monthShort
+            data.monthIncome = monthIncome
+            dbConn.query(sqlYearIncome,(err,result)=>{
+                if(err)err_service.errorNotification(err,'overview money transfer => year income ')
+                let yearIncome = {}
+                let years = []
+                let totalYearIncomePerYear = []
+                let orderCount = []
+                for(let i = 0 ; i < result.length ; i++ ){
+                    orderCount[i] = result[i].orderCount;
+                    years[i] = result[i].years;
+                    totalYearIncomePerYear[i] = result[i].totalYearIncomePerYear;
+                }
+                if(years.length < 5 ){
+                    for(let i = (years.length)-1 ; i < 4 ; i++ ){
+                        years.unshift(parseInt(years[0])-1)
+                        totalYearIncomePerYear.unshift(0)
+                    }
+                }
+                years.length = 5 
+                totalYearIncomePerYear.length = 5
+                yearIncome.totalYearIncome = totalYearIncomePerYear.reduce((sum, a) => sum + a, 0)
+                yearIncome.totalYearOrderCount = orderCount.reduce((sum, a) => sum + a, 0)
+                yearIncome.totalYearIncomePerYear = totalYearIncomePerYear;
+                yearIncome.orderCount = orderCount;
+                yearIncome.years = years;
+                data.yearIncome = yearIncome;
+
+                dbConn.query(sqlAllIncome,(err,result)=>{
+                    if(err)err_service.errorNotification(err,'overview money transfer => year income ')
+                    let totalAllIncome = result[0].totalIncome
+                    
+                    data.totalAllIncome = totalAllIncome
+                    res.send({
+                        status:true,
+                        data:data,
+                    })
+                })
+
+            })
+        })
+    })
+
+}
+// money transfer overview
 module.exports.moneyTransferOverview = (req,res) => {
     sqlPopularPackage = `
         SELECT
@@ -21,16 +193,18 @@ module.exports.moneyTransferOverview = (req,res) => {
         LIMIT 1;
     `
     sqlMostSubScription = `
-        SELECT
-            COUNT(money_transfers.userId) AS userLength ,
+        SELECT 
+            users.id AS userId,
             users.fname AS userFname,
-            users.lname AS userLname,
-            users.pictureUrl AS userImage
+            users.lname AS userLname, 
+            users.pictureUrl AS userImage,
+            COUNT(money_transfers.id) AS orderCountPackage,
+            SUM(money_transfers.price) AS totalPricePackage
         FROM money_transfers
         INNER JOIN users ON users.id = money_transfers.userId
-        WHERE money_transfers.confirm = 1
         GROUP BY money_transfers.userId
-        ORDER BY userLength DESC;
+        ORDER BY totalPricePackage DESC
+        LIMIT 1;
     `
     sqlSubsciberLength =`
         SELECT
@@ -52,38 +226,39 @@ module.exports.moneyTransferOverview = (req,res) => {
             COUNT(*) AS allMoneyTransfer
         FROM money_transfers;
         `
+    
     let data = {}
     dbConn.query(sqlPopularPackage,(err,result)=>{
         if(err)err_service.errorNotification(err,'overview money transfer => popular package')
         if(result.length > 0){
             data.popularPackge = result[0].packageName
         }else{
-            data.popularPackge = 'unknow'
+            data.popularPackge = null
         }
         dbConn.query(sqlMostSubScription,(err,result)=>{
             if(err)err_service.errorNotification(err,'overview money transfer => user most subscrition')
-            data.userMostSubscrition = 'unknow'
-            data.userImage = 'unknow'
+            data.userMostSubscrition = null
             if(result.length > 0){
-                data.userMostSubscrition = result[0].userFname + ' ' + result[0].userLname
-                data.userImage = result[0].userImage
+                data.userMostSubscrition = result[0]
             }
             dbConn.query(sqlSubsciberLength,(err,result)=>{
                 if(err)err_service.errorNotification(err,'overview money transfer => user most subscrition')
                 data.subscitionLength = result.length
+
                 dbConn.query(sqlWaitingConfirm,(err,result)=>{
                     if(err)err_service.errorNotification(err,'overview money transfer => wating confirm')
                     data.moneyTransferWaitingConfirm = result[0].waitingConfirm
+
                     dbConn.query(sqlAllmoneyTransfer,(err,result)=>{
                         if(err)err_service.errorNotification(err,'overview money transfer => all moeny transfer')
                         data.allMoneyTransfer = result[0].allMoneyTransfer
+                        
                         res.send({
                             status:true,
                             data:data,
                             imagePathUser:process.env.IMAGE_PATH_AVATAR
                         })
                     })
-
                 })
             })
         })

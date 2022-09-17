@@ -2,9 +2,100 @@ const dbConn = require("./../database");
 const err_service = require('./../../service/err_service')
 const multer_s = require('./../../service/multer');
 require('dotenv').config()
+const dateAndTime = require('date-and-time')
 
-let date = new Date()
+let date = dateAndTime.format(new Date(),'YYYY/MM/DD HH:mm:ss')
 
+// get property data overview
+module.exports.propertyOverview = (req,res)=>{
+    sqlGetPupularType =`
+        SELECT
+            COUNT(user_sub_props.propType) AS propertyTypeLength ,
+            property_types.name_th AS propertyType
+        FROM user_sub_props
+        INNER JOIN property_types ON property_types.id = user_sub_props.propType
+        GROUP BY property_types.id
+        ORDER BY propertyTypeLength DESC;
+    `
+
+    sqlAllPropertyLength =`
+        SELECT
+            COUNT(*) AS allPropertylength
+        FROM user_sub_props;
+    `
+
+    sqlPropertyReport =`
+            SELECT
+            COUNT(*) AS propertyReport
+        FROM user_report_properties
+        GROUP BY propertyId
+    `
+
+    sqlNewProperty =`
+        SELECT
+            COUNT(*) AS newPropertyLength
+        FROM user_sub_props
+        WHERE
+            createdAt >= ADDDATE(CURRENT_TIMESTAMP(), INTERVAL -7 DAY)
+            AND createdAt <= CURRENT_TIMESTAMP();
+    `
+
+    sqlPropertyPurposeSaleCount = `
+        SELECT
+            property_purposes.name_th AS propertyPurposeName ,
+            COUNT(user_sub_props.id) AS propertyCountSale 
+        FROM user_sub_props 
+        INNER JOIN property_purposes ON property_purposes.id = user_sub_props.propFor
+        WHERE  user_sub_props.propFor = 1 
+                OR
+               user_sub_props.propFor = 3;
+    `
+    sqlPropertyPurposeRentCount = `
+        SELECT
+            property_purposes.name_th AS propertyPurposeName ,
+            COUNT(user_sub_props.id) AS propertyCountRent 
+        FROM user_sub_props 
+        INNER JOIN property_purposes ON property_purposes.id = user_sub_props.propFor
+        WHERE  user_sub_props.propFor = 2 
+                OR
+               user_sub_props.propFor = 3;
+    `
+
+    let data = {}
+    dbConn.query(sqlAllPropertyLength,(err,result)=>{
+        if(err)err_service.errorNotification(err,'get property data overview => get all props length ')
+        data.allPropertylength = result[0].allPropertylength
+        dbConn.query(sqlGetPupularType,(err,result)=>{
+            if(err)err_service.errorNotification(err,'get property data overview => get propts type ')
+            data.propertyType = result[0].propertyType
+            dbConn.query(sqlPropertyReport,(err,result)=>{
+                if(err)err_service.errorNotification(err,'get property data overview => get propt report')
+                data.propertyReport = result.length
+                dbConn.query(sqlNewProperty,(err,result)=>{
+                    if(err)err_service.errorNotification(err,'get property data overview => get new property')
+                    data.newPropertyLength = result[0].newPropertyLength
+                    dbConn.query(sqlPropertyPurposeSaleCount,(err,result)=>{
+                        if(err)err_service.errorNotification(err,'get property data overview => get  property purpose sale')
+                        let porposeLength = []
+                        porposeLength.push(result[0].propertyCountSale)
+                        dbConn.query(sqlPropertyPurposeRentCount,(err,result)=>{
+                            if(err)err_service.errorNotification(err,'get property data overview => get  property purpose rent')
+                            porposeLength.push(result[0].propertyCountRent)
+                            data.porposeLength = porposeLength
+                            console.log(data);
+                            res.send({
+                                status:true,
+                                data:data
+                            })
+                        })
+
+                    })
+
+                })
+            })
+        })
+    })
+}
 //search property table bar
 module.exports.searchProperty = (req,res) => {
     // console.log(req.body);
@@ -120,28 +211,93 @@ module.exports.addNewProperty = (req,res)=>{
     lat = req.body.lat
     lng = req.body.lng
 
-
-    // let date = new Date()
-
     if(req.body.featuresList){
         featuresList = req.body.featuresList
     }
+    if(priceSale === undefined || priceSale === 'undefined' || priceSale === '' || priceSale === null){
+        priceSale = 0 
+    }
+    if(priceRent === undefined || priceRent === 'undefined' || priceRent === '' || priceRent === null){
+        priceRent = 0 
+    }
     gallery = req.body.gallery
+
+    sqlInsertSubProps =`
+        INSERT INTO user_sub_props(
+            userId,
+            title,
+            description,
+            propFor,
+            priceSale,
+            priceRent,
+            propType,
+            lat,
+            lng,
+            houseNo,
+            addressId,
+            createdAt,
+            updatedAt) 
+        VALUES(
+            '${userId}',
+            '${title}',
+            '${desc}',
+            ${propsPP_sl},
+            ${priceSale},
+            ${priceRent},
+            ${propsType_sl},
+            ${lat},
+            ${lng},
+            '${houseNO}',
+            ${Subdistricts_sl},
+            '${date}',
+            '${date}');
+    `
+
+    sqlGetPropByid =`
+        SELECT 
+            id 
+        FROM user_sub_props 
+        ORDER BY id DESC 
+        LIMIT 1;
+    `
+
+    sqlGetRoomsId =`
+        SELECT 
+            id 
+        FROM user_sub_prop_additionals 
+        ORDER BY id DESC 
+        LIMIT 1;
+    `
     //insert prop main
-    dbConn.query(`INSERT INTO user_sub_props(userId ,title,description,propFor ,priceSale,priceRent,propType ,
-    lat,lng,houseNo,addressId,createdAt,updatedAt) VALUE(?,?,?,?,?,?,?,?,?,?,?,?,?)`,
-    [userId,title,desc,propsPP_sl,priceSale,priceRent,propsType_sl,lat,lng,houseNO,Subdistricts_sl,date,date],(err,result)=>{
+    dbConn.query(sqlInsertSubProps,(err,result)=>{
         if(err)err_service.errorNotification(err,'add new prop => main table')
         //get prop id
-        dbConn.query('SELECT id FROM `user_sub_props` ORDER BY `id`  DESC LIMIT 1;',(err,result)=>{
+        dbConn.query(sqlGetPropByid,(err,result)=>{
             if(err)err_service.errorNotification(err,'add new prop => get prop id')
             propertyId = result[0].id
+            sqlInsertRooms =`
+            INSERT INTO user_sub_prop_additionals(
+                floor,
+                bedrooms,
+                bathrooms,
+                garages,
+                yearBuilt,
+                area,
+                propertyId)
+            VALUE (
+                ${floor},
+                ${bedrooms},
+                ${bathrooms},
+                ${garages},
+                ${yearBuilt},
+                ${area},
+                ${propertyId})
+        `
             //insert additionals (rooms)
-            dbConn.query(`INSERT INTO user_sub_prop_additionals(floor,bedrooms,bathrooms,garages,yearBuilt,area,propertyId)
-            VALUE (?,?,?,?,?,?,?)`,[floor,bedrooms,bathrooms,garages,yearBuilt,area,propertyId],(err,result)=>{
+            dbConn.query(sqlInsertRooms,(err,result)=>{
                 if(err)err_service.errorNotification(err,'add new props => insert additional(rooms)')
                 //get additional Id
-                dbConn.query('SELECT id FROM `user_sub_prop_additionals` ORDER BY `id`  DESC LIMIT 1;',(err,result)=>{
+                dbConn.query(sqlGetRoomsId,(err,result)=>{
                     if(err)err_service.errorNotification(err,'add new props => get additional(rooms) Id')
                     additionalId = result[0].id
                     //add feature Id
@@ -166,7 +322,6 @@ module.exports.addNewProperty = (req,res)=>{
             })
         })
     })
-
 }
 //get new property length
 module.exports.getNewPropertyLength = (req,res) => {
@@ -192,17 +347,27 @@ module.exports.getPropertyLength = (req,res) => {
 }
 //get all property
 module.exports.getAllPropertyList = (req, res) => {
-    sql = `SELECT user_sub_props.*, property_purposes.name_th ,property_types.name_th,
-            user_sub_prop_additionals.bedrooms,user_sub_prop_additionals.bedrooms, user_sub_prop_additionals.garages,
-            user_sub_prop_additionals.area , user_sub_prop_additionals.floor, user_sub_prop_additionals.yearBuilt,
-            user_sub_prop_galleries.path AS image
-            From user_sub_props
+    console.log(req.body);
+    sql = ` SELECT 
+                user_sub_props.*, 
+                property_purposes.name_th ,
+                property_types.name_th,
+                user_sub_prop_additionals.bedrooms,
+                user_sub_prop_additionals.bedrooms, 
+                user_sub_prop_additionals.garages,
+                user_sub_prop_additionals.area , 
+                user_sub_prop_additionals.floor, 
+                user_sub_prop_additionals.yearBuilt,
+                user_sub_prop_galleries.path AS image
+            FROM user_sub_props
             INNER JOIN user_sub_prop_galleries ON user_sub_props.id = user_sub_prop_galleries.propertyId
             INNER JOIN property_purposes ON user_sub_props.propFor = property_purposes.id
             INNER JOIN property_types ON user_sub_props.propType = property_types.id
             INNER JOIN user_sub_prop_additionals ON user_sub_props.id = user_sub_prop_additionals.propertyId
-            GROUP BY user_sub_prop_galleries.propertyId ORDER BY id DESC LIMIT ?,?;`
-        dbConn.query(sql, [req.body.items,req.body.size],(err, result) => {
+            GROUP BY user_sub_prop_galleries.propertyId 
+            ORDER BY id DESC 
+            LIMIT ${req.body.items},${req.body.size}; `
+        dbConn.query(sql,(err, result) => {
             if (err) err_service.errorNotification(err,'get all property')
             if(result.length > 0){
                 result[0].imagePath = process.env.IMAGE_PATH_PROPERTY
@@ -558,41 +723,68 @@ module.exports.updateProperty = (req,res) => {
             featuresID[i] =  Number(req.body.futureID[i])
         }
     }
-
+    if(priceSale === undefined || priceSale === 'undefined' || priceSale === '' || priceSale === null){
+        priceSale = 0 
+    }
+    if(priceRent === undefined || priceRent === 'undefined' || priceRent === '' || priceRent === null){
+        priceRent = 0 
+    }
     // update sub props ตารางใหญ่
-    sql_update_userSubProps = `UPDATE user_sub_props
-                            SET title = ? , description = ? , propFor = ? , propType = ? ,
-                            priceSale = ? , priceRent = ? , lat =? ,lng = ? , houseNo = ? ,
-                            addressId = ? , updatedAt = ? WHERE id = ? `
-    dbConn.query(sql_update_userSubProps,
-                    [title,desc,ppID,TypeID,priceSale,priceRent,lat,lng,house_No,subDisID,date,props_ID],
-                    (err,result)=>{
-                        if(err) err_service.errorNotification(err,'update property => main property')
-                        // update additional
-                        sql_update_rooms = `UPDATE user_sub_prop_additionals
-                                            SET bedrooms = ? , bathrooms = ? , garages =? , area = ? , floor = ? , yearBuilt = ?
-                                            WHERE propertyId = ? `
-                        dbConn.query(sql_update_rooms,[bedrooms,bathrooms,garages,area,floor,yearBuilt,props_ID],(err,result)=>{
-                            if(err) err_service.errorNotification(err,'update property => additional table (rooms')
-                            // get additional id
-                            dbConn.query('SELECT id FROM user_sub_prop_additionals WHERE propertyId = ?',[props_ID],(err,result)=>{
-                                if(err)err_service.errorNotification(err,'update property => get additional ID')
-                                let additionalID = result[0].id
-                                // images
-                                chcekFeatures(additionalID,featuresID);
-                                if(images.length != 0){
-                                    for(let i = 0 ; i < images.length ; i++){
-                                        insertPropImage(images[i],props_ID);
-                                    }
-                                }
-                                res.send({
-                                    status: true,
-                                    msg:'อัพเดตสำเร็จ'
-                                })
-                            })
-                        })
+    sql_update_userSubProps = `
+        UPDATE user_sub_props
+        SET title = '${title}' , 
+            description = '${desc}' , 
+            propFor = ${ppID} , 
+            propType = ${TypeID} ,
+            priceSale = ${priceSale} , 
+            priceRent = ${priceRent} , 
+            lat = ${lat} ,
+            lng = ${lng} , 
+            houseNo = '${house_No}' ,
+            addressId = ${subDisID} , 
+            updatedAt = '${date}' 
+        WHERE id = ${props_ID} `
+
+    sql_update_rooms = `
+        UPDATE user_sub_prop_additionals
+            SET bedrooms = ${bedrooms} , 
+            bathrooms = ${bathrooms} , 
+            garages = ${garages} , 
+            area = ${area} , 
+            floor = ${floor} , 
+            yearBuilt = ${yearBuilt}
+        WHERE propertyId = ${props_ID} `
+
+    sqlGetRoomsId = `
+        SELECT 
+            id 
+        FROM user_sub_prop_additionals 
+        WHERE propertyId = ${props_ID}
+    `
+    dbConn.query(sql_update_userSubProps,(err,result)=>{
+        if(err) err_service.errorNotification(err,'update property => main property')
+        // update additional
+        dbConn.query(sql_update_rooms,(err,result)=>{
+            if(err) err_service.errorNotification(err,'update property => additional table (rooms')
+            // get additional id
+            dbConn.query(sqlGetRoomsId,(err,result)=>{
+                if(err)err_service.errorNotification(err,'update property => get additional ID')
+                let additionalID = result[0].id
+                chcekFeatures(additionalID,featuresID);
+                // images
+                if(images.length != 0){
+                    for(let i = 0 ; i < images.length ; i++){
+                        insertPropImage(images[i],props_ID);
                     }
-                )
+                }
+                res.send({
+                    status: true,
+                    msg:'อัพเดตสำเร็จ'
+                })
+            })
+        })
+    }
+)
 
 }
 //delete property By id
@@ -604,61 +796,6 @@ module.exports.deletePropertyById = (req,res,id) => {
         res.send({
             status:true,
             msg:'delete success '
-        })
-    })
-}
-// get property data overview
-module.exports.propertyOverview = (req,res)=>{
-    sqlGetPupularType =`
-        SELECT
-            COUNT(user_sub_props.propType) AS propertyTypeLength ,
-            property_types.name_th AS propertyType
-        FROM user_sub_props
-        INNER JOIN property_types ON property_types.id = user_sub_props.propType
-        GROUP BY property_types.id
-        ORDER BY propertyTypeLength DESC;
-    `
-
-    sqlAllPropertyLength =`
-        SELECT
-            COUNT(*) AS allPropertylength
-        FROM user_sub_props;
-    `
-
-    sqlPropertyReport =`
-            SELECT
-            COUNT(*) AS propertyReport
-        FROM user_report_properties
-        GROUP BY propertyId
-    `
-
-    sqlNewProperty =`
-        SELECT
-            COUNT(*) AS newPropertyLength
-        FROM user_sub_props
-        WHERE
-            createdAt >= ADDDATE(CURRENT_TIMESTAMP(), INTERVAL -7 DAY)
-            AND createdAt <= CURRENT_TIMESTAMP();`
-
-    let data = {}
-    dbConn.query(sqlAllPropertyLength,(err,result)=>{
-        if(err)err_service.errorNotification(err,'get property data overview => get all props length ')
-        data.allPropertylength = result[0].allPropertylength
-        dbConn.query(sqlGetPupularType,(err,result)=>{
-            if(err)err_service.errorNotification(err,'get property data overview => get propts type ')
-            data.propertyType = result[0].propertyType
-            dbConn.query(sqlPropertyReport,(err,result)=>{
-                if(err)err_service.errorNotification(err,'get property data overview => get propt report')
-                data.propertyReport = result.length
-                dbConn.query(sqlNewProperty,(err,result)=>{
-                    if(err)err_service.errorNotification(err,'get property data overview => get new property')
-                    data.newPropertyLength = result[0].newPropertyLength
-                    res.send({
-                        status:true,
-                        data:data
-                    })
-                })
-            })
         })
     })
 }
@@ -719,10 +856,15 @@ function deleteFeatures(additionalID,addNull){
 //updateFeatures
 function updateFeatures(featuresID,additionalID){
     //insert future
-    sql_insert_futures = `INSERT INTO user_sub_prop_additional_features(additionalId,featuresId)
-    VALUES(?,?)`
     for(let i = 0 ; i < featuresID.length ; i++){
-        dbConn.query(sql_insert_futures,[additionalID,featuresID[i]],(err,result)=>{
+        sql_insert_futures = `
+            INSERT INTO user_sub_prop_additional_features(
+                additionalId,
+                featuresId)
+            VALUES(
+                ${additionalID},
+                ${featuresID[i]})`
+        dbConn.query(sql_insert_futures,(err,result)=>{
             if(err) err_service.errorNotification(err,'update property => add new feature after delete and add default features')
         })
     }

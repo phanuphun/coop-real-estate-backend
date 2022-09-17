@@ -264,6 +264,9 @@ route.put('/admin/packageUpdate',auth.requiredToken,package_ct.updatePackage)
 //***************************************************************************** */
 // Money Transfer
 //***************************************************************************** */
+// income Chart
+route.get('/admin/inComeChart',auth.requiredToken,moneyTransfer_ct.inComeChartData)
+
 //money Transfer Overview
 route.get('/admin/moneyTransferOverview',auth.requiredToken,moneyTransfer_ct.moneyTransferOverview)
 

@@ -6,8 +6,10 @@ const property_ct = require('./../controller/property_controller');
 const moneyTransfer_ct = require('./moneyTransfer_controller')
 const login_s = require('./../controller/login_controller')
 const multer_s = require('./../../service/multer')
+const dateAndTime = require('date-and-time')
 
-let date = new Date()
+let date = dateAndTime.format(new Date(),'YYYY/MM/DD HH:mm:ss')
+
 //update user image
 function updateImage(image,id){
     dbConn.query('UPDATE users SET pictureUrl = ? WHERE id = ? ',[image,id],(err,result)=>{
@@ -45,6 +47,13 @@ module.exports.userOverview = (req,res) => {
         FROM users 
         WHERE displayStatus = 0
     `
+
+    sqlGetAgent =`
+        SELECT 
+            COUNT(*) AS agentLength
+        FROM user_sub_props 
+        GROUP BY userId;
+    `
     let data = {}
     dbConn.query(sqlAllUser,(err,result)=>{
         if(err)err_service.errorNotification(err,'user Overview => all user')
@@ -56,12 +65,23 @@ module.exports.userOverview = (req,res) => {
                 if(err)err_service.errorNotification(err,'user Overview => user report  ')
                 data.userReport = result.length
                 dbConn.query(sqlBannedUser,(err,result)=>{
-                    if(err)err_service.errorNotification(err,'user Overview => banne user  ')
+                    if(err)err_service.errorNotification(err,'user Overview => banned user  ')
                     data.bannedUser = result[0].bannedUser
-                    res.send({
-                        status:true,
-                        data:data
+                    dbConn.query(sqlGetAgent,(err,result)=>{
+                        if(err)err_service.errorNotification(err,'user Overview => agent length')
+                        let agentData = {}
+                        agentData.agentLength = result.length
+                        agentData.userLength = data.allUser
+                        let agentPercent = ((agentData.agentLength/data.allUser)*100)
+                        agentData.agentPercent = Math.round(agentPercent)
+                        agentData.userPercent = (100 - agentData.agentPercent)
+                        data.agentData = agentData
+                        res.send({
+                            status:true,
+                            data:data
+                        })
                     })
+
                 })
             })
         })
@@ -289,6 +309,7 @@ module.exports.addNewMember = (req,res) => {
     organization = req.body.organization
     image = req.body.gallery[0]
 
+
     sqlInsertUser = `
         INSERT INTO users(
                         userId,
@@ -297,7 +318,7 @@ module.exports.addNewMember = (req,res) => {
                         lname,
                         pictureUrl,
                         createdAt,
-                        updateAt,
+                        updatedAt,
                         packageId,
                         displayStatus,
                         roleId,
@@ -317,6 +338,7 @@ module.exports.addNewMember = (req,res) => {
                         ADDDATE(CURRENT_TIMESTAMP(),
                         INTERVAL +30 DAY))
     `
+
     dbConn.query(sqlInsertUser,(err,result)=>{
         if(err)err_service.errorNotification(err,'add new member => users table')
         dbConn.query('SELECT id FROM users WHERE pictureUrl =? ',[image],(err,result)=>{
@@ -375,17 +397,18 @@ module.exports.updateUser = (req,res) => {
     dbConn.query('SELECT id FROM user_account_details WHERE userId = ?',[id],(err,result)=>{
         if(err) err_service.errorNotification(err,'update user => get id user detail')
         userDetailId = result[0].id
+
         //update users
         sql_update_main = `
             UPDATE users
-            SET userId = '${tokenLindID}' ,
-                displayName = '${userName}' ,
+            SET displayName = '${userName}' ,
                 fname = '${fname}' ,
                 lname = '${lname}' ,
                 packageId = '${package_id}' ,
-                updateAt = '${date}'
+                updatedAt = '${date}'
             WHERE id = '${id}'
             `
+            console.log(date);
 
         dbConn.query(sql_update_main,(err,result)=>{
             if(err) err_service.errorNotification(err,'update user => main table')
@@ -447,10 +470,16 @@ module.exports.updateAdminDetail = (req,res) =>{
 //get all admin
 module.exports.getAllAdminList = async (req, res) => {
     console.log(req.body);
-    let sql = `SELECT admin.* ,  roles.role_name FROM admin
-                INNER JOIN roles ON admin.role_id = roles.role_id
-                ORDER BY admin.adminId ASC LIMIT ?,? ;`;
-    dbConn.query(sql,[req.body.items,req.body.size], (err, result) => {
+    let sqlGetAdminList =`
+        SELECT 
+            admin.* ,
+            roles.role_name 
+        FROM admin
+        INNER JOIN roles ON admin.role_id = roles.roleId
+        ORDER BY admin.adminId ASC 
+        LIMIT ${req.body.items},${req.body.size};
+        `
+    dbConn.query(sqlGetAdminList,(err, result) => {
         if (err) err_service.errorNotification(err,'get all admin data')
         res.send({
             message: "admin list ",
@@ -584,28 +613,36 @@ module.exports.deleteUser = (req,res) => {
     sqlGetPaymentId =`
         SELECT
             id
-        FROM money_transfer
+        FROM money_transfers
         WHERE userId = ${req.params.id};
     `
 
     dbConn.query(sqlGetPictureUrl,(err,result)=>{
         if(err) err_service.errorNotification(err,'delete user => get picture name ')
-        picture =  result[0].pictureUrl
+        let picture =  result[0].pictureUrl
         // ลบ picture user
-        multer_s.deleteImage('avatar/'+picture)
+        if(picture.length <= 20 ){
+            multer_s.deleteImage('avatar/'+picture)
+        }
         dbConn.query(sqlGetPropertyId,(err,result)=>{
             if(err) err_service.errorNotification(err,'delete user => get property id ')
             let propertyId = result
-            console.log(propertyId);
-            for(let i =  0 ; i < propertyId.length ; i++){
-                //ลบ property user
-                property_ct.deletePropertyByUser(propertyId[i].id)
+
+            if(propertyId.length > 0){
+                for(let i =  0 ; i < propertyId.length ; i++){
+                    //ลบ property user
+                    property_ct.deletePropertyByUser(propertyId[i].id)
+                }
             }
+
             dbConn.query(sqlGetPaymentId,(err,result)=>{
+                console.log(result);
                 let paymentId = result
-                for(let i =  0 ; i < paymentId.length ; i++){
-                    //ลบ payment
-                    moneyTransfer_ct.deleteMoneyTransferByDeleteUser(paymentId[i].id)
+                if(paymentId.length > 0){
+                    for(let i =  0 ; i < paymentId.length ; i++){
+                        //ลบ payment
+                        moneyTransfer_ct.deleteMoneyTransferByDeleteUser(paymentId[i].id)
+                    }
                 }
                 dbConn.query(sqlDeleteUser,(err,result)=>{
                     if(err) err_service.errorNotification(err,'delete user ')
