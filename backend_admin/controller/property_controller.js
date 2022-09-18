@@ -134,25 +134,31 @@ module.exports.searchProperty = (req,res) => {
     GROUP BY user_sub_prop_galleries.propertyId
     `
     sql = `
-    SELECT
-        user_sub_props.*,
-        property_purposes.name_th,
-        property_types.name_th,
+    SELECT 
+        user_sub_props.*, 
+        property_purposes.name_th ,
+        property_types.name_th AS propertyType,
         user_sub_prop_additionals.bedrooms,
-        user_sub_prop_additionals.bedrooms,
+        user_sub_prop_additionals.bedrooms, 
         user_sub_prop_additionals.garages,
-        user_sub_prop_additionals.area ,
-        user_sub_prop_additionals.floor,
+        user_sub_prop_additionals.area , 
+        user_sub_prop_additionals.floor, 
         user_sub_prop_additionals.yearBuilt,
-        user_sub_prop_galleries.path AS image
-        FROM user_sub_props
+        user_sub_prop_galleries.path AS image,
+        subdistricts.name_th AS subDistricts,
+        districts.name_th AS districts,
+        provinces.name_th AS province,
+        users.fname AS userFname,
+        users.lname AS userLname
+    FROM user_sub_props
     INNER JOIN user_sub_prop_galleries ON user_sub_props.id = user_sub_prop_galleries.propertyId
     INNER JOIN property_purposes ON user_sub_props.propFor = property_purposes.id
     INNER JOIN property_types ON user_sub_props.propType = property_types.id
     INNER JOIN user_sub_prop_additionals ON user_sub_props.id = user_sub_prop_additionals.propertyId
-    INNER JOIN subdistricts ON user_sub_props.addressId = subdistricts.id
+    INNER JOIN subdistricts ON subdistricts.id = user_sub_props.addressId
     INNER JOIN districts ON districts.id = subdistricts.DistrictId
     INNER JOIN provinces ON provinces.id = districts.ProvinceId
+    INNER JOIN users ON users.id = user_sub_props.userId
     WHERE
     (
         (user_sub_props.title LIKE ${title} OR ${title} is null)
@@ -351,21 +357,30 @@ module.exports.getAllPropertyList = (req, res) => {
     sql = ` SELECT 
                 user_sub_props.*, 
                 property_purposes.name_th ,
-                property_types.name_th,
+                property_types.name_th AS propertyType,
                 user_sub_prop_additionals.bedrooms,
                 user_sub_prop_additionals.bedrooms, 
                 user_sub_prop_additionals.garages,
                 user_sub_prop_additionals.area , 
                 user_sub_prop_additionals.floor, 
                 user_sub_prop_additionals.yearBuilt,
-                user_sub_prop_galleries.path AS image
+                user_sub_prop_galleries.path AS image,
+                subdistricts.name_th AS subDistricts,
+                districts.name_th AS districts,
+                provinces.name_th AS province,
+                users.fname AS userFname,
+                users.lname AS userLname
             FROM user_sub_props
             INNER JOIN user_sub_prop_galleries ON user_sub_props.id = user_sub_prop_galleries.propertyId
             INNER JOIN property_purposes ON user_sub_props.propFor = property_purposes.id
             INNER JOIN property_types ON user_sub_props.propType = property_types.id
             INNER JOIN user_sub_prop_additionals ON user_sub_props.id = user_sub_prop_additionals.propertyId
+            INNER JOIN subdistricts ON subdistricts.id = user_sub_props.addressId
+            INNER JOIN districts ON districts.id = subdistricts.DistrictId
+            INNER JOIN provinces ON provinces.id = districts.ProvinceId
+            INNER JOIN users ON users.id = user_sub_props.userId
             GROUP BY user_sub_prop_galleries.propertyId 
-            ORDER BY id DESC 
+            ORDER BY id DESC
             LIMIT ${req.body.items},${req.body.size}; `
         dbConn.query(sql,(err, result) => {
             if (err) err_service.errorNotification(err,'get all property')

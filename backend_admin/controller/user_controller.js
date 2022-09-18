@@ -116,9 +116,11 @@ module.exports.seachUser = (req,res) => {
     sql = `
     SELECT users.* ,
         users.userId AS userIdLine ,
-        user_account_details.*
+        user_account_details.*,
+        packages.name AS packageName
     FROM users
     INNER JOIN user_account_details ON users.id = user_account_details.userId
+    INNER JOIN packages ON packages.id = users.packageId 
     WHERE
     (
         (
@@ -541,13 +543,17 @@ module.exports.getUserById = async (req, res) => {
 //get all users
 module.exports.getAlluserList = (req, res) => {
     console.log(req.body);
-    const sql = `SELECT 
-                    users.* , 
-                    users.userId AS userIdLine ,
-                    user_account_details.* FROM users
-                INNER JOIN user_account_details ON users.id = user_account_details.userId
-                ORDER BY users.id DESC LIMIT ?,?;`
-    dbConn.query(sql,[req.body.items,req.body.size],(err,result)=>{
+    const sql = `
+        SELECT 
+            users.* , 
+            users.userId AS userIdLine ,
+            user_account_details.* ,
+            packages.name AS packageName
+        FROM users
+        INNER JOIN user_account_details ON users.id = user_account_details.userId
+        INNER JOIN packages ON packages.id = users.packageId 
+        ORDER BY users.id DESC LIMIT ${req.body.items},${req.body.size};`
+    dbConn.query(sql,(err,result)=>{
         if(err) err_service.errorNotification(err,'get all user')
         res.send({
             status:true,
