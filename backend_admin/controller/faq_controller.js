@@ -12,7 +12,7 @@ module.exports.getFAQ = (req,res) => {
         faq_categories.faqCategoryName
     FROM faqs
     INNER JOIN faq_categories ON faq_categories.faqCategoryId = faqs.category
-    ORDER BY faqs.category ASC;`
+    ORDER BY faqId DESC;`
 
     sqlHelpful = `
     SELECT
@@ -28,7 +28,6 @@ module.exports.getFAQ = (req,res) => {
             dbConn.query(sqlHelpful,[data[i].faqId],(err,result)=>{
                 data[i].goodHelp = result[0].goodHelp
                 data[i].badHelp = result[0].badHelp
-                console.log(result);
                 if((i+1) === data.length){
                     console.log(data);
                     res.send({
@@ -43,7 +42,7 @@ module.exports.getFAQ = (req,res) => {
 }
 //get FAQ By Category ID
 module.exports.getFAQByCategory = (req,res) => {
-    dbConn.query('SELEcT * FROM faqs WHERE category = ? ',[req.params.id],(err,result)=>{
+    dbConn.query('SELECT * FROM faqs WHERE category = ? ',[req.params.id],(err,result)=>{
         if(err) err_service.errorNotification(err,'get FAQ By Category ID')
         res.send({
             status:true,
@@ -86,6 +85,15 @@ module.exports.insertFAQ = (req,res) => {
 }
 //update FAQ
 module.exports.updateFAQ = (req,res) => {
+    sqlUpdate = `
+        UPDATE faqs 
+        SET faqQ = '${req.body.faq_Q}' , 
+            faqA = '${req.body.faq_A}' , 
+            category = ${req.body.faq_category}
+        WHERE faqId =  ${req.body.faq_id} 
+    `
+
+    console.log(sqlUpdate);
     dbConn.query('UPDATE faqs SET faqQ = ? , faqA = ? , category = ? WHERE faqId =  ? ',
     [req.body.faq_Q,req.body.faq_A,req.body.faq_category,req.body.faq_id],(err,result)=>{
         if(err) err_service.errorNotification(err,'updateFAQ')
