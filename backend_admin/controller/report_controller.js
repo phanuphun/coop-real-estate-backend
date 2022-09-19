@@ -12,20 +12,24 @@ module.exports.userReport = (req,res)=>{
     sql =`
         SELECT
             user_report_users.id AS id,
-            user_report_users.userId AS userId,
-            COUNT(user_report_users.userId) AS reportCount ,
             user_report_users.userReportedId AS userReporterId,
+            COUNT(user_report_users.userId) AS reportCount ,
+            user_report_users.userId AS userId,
             user_report_users.detailReportId AS reportDetailId,
             user_report_users.description AS description ,
             detail_report_users.name AS reportTopic ,
             users.fname AS userFname ,
             users.lname AS userLname ,
+            users.displayStatus AS displayStatus,
             users.pictureUrl AS image
         FROM user_report_users
-        INNER JOIN users ON users.id = user_report_users.userId
+        INNER JOIN users ON users.id = user_report_users.userReportedId
         INNER JOIN detail_report_users ON detail_report_users.id = user_report_users.detailReportId
-        GROUP BY user_report_users.userId
-        ORDER BY reportCount DESC
+        GROUP BY user_report_users.userReportedId
+        ORDER BY 
+                users.displayStatus DESC ,
+                reportCount DESC , 
+                users.displayStatus DESC
         LIMIT ${req.body.items},${req.body.size};`
 
     dbConn.query(sqlLength,(err,result)=>{
@@ -45,12 +49,13 @@ module.exports.userReport = (req,res)=>{
 //get reporter
 module.exports.userReporter = (req,res) => {
     sql =`
-    SELECT
-        user_report_users.*,
-        users.*
-    FROM users
-    INNER JOIN user_report_users ON user_report_users.userReportedId = users.id
-    WHERE user_report_users.userId = ${req.params.id};`
+        SELECT 
+            user_report_users.*,
+            users.*
+        FROM user_report_users
+        INNER JOIN users ON users.id = user_report_users.userId
+        WHERE user_report_users.userReportedId = ${req.params.id};
+    `
 
 
     dbConn.query(sql,(err,result)=>{
@@ -65,14 +70,25 @@ module.exports.userReporter = (req,res) => {
 }
 //confirm report
 module.exports.confirmUserReport = (req,res) => {
-    console.log(req.params.id);
-    sql = `DELETE FROM user_report_users WHERE userId = ${req.params.id};`
-    dbConn.query(sql,(err,result)=>{
+    sqlDeleteUser = `
+        DELETE FROM user_report_users 
+        WHERE userReportedId = ${req.params.id};
+    `
+    sqlUnbanned = `
+        UPDATE users SET displayStatus = 1 
+        WHERE id = ${req.params.id}
+    `
+    console.log('id',req.params.id);
+    dbConn.query(sqlUnbanned,(err,result)=>{
         if(err) err_service.errorNotification(err,'confirm user report ')
-        res.send({
-            status:true,
-            msg:'ยืนยันเรียบร้อยแล้ว'
+        dbConn.query(sqlDeleteUser,(err,result)=>{
+            if(err) err_service.errorNotification(err,'confirm user report => UnBanned')
+            res.send({
+                status:true,
+                msg:'ยืนยันเรียบร้อยแล้ว'
+            })
         })
+
     })
 }
 //add property report topic
@@ -287,7 +303,7 @@ module.exports.confirmPropertyReport = (req,res) => {
         })
     })
 }
-//reporter(user) list
+//property reporter(user) list
 module.exports.getReporterList = (req,res)=>{
     sql = `
         SELECT
@@ -336,6 +352,34 @@ module.exports.userReportLength = (req,res) =>{
         res.send({
             status:true,
             length:result.length
+        })
+    })
+}
+// banned user 
+module.exports.bannedUser = (req,res) => {
+    dbConn.query('SELECT displayStatus FROM users WHERE id = ?',[req.params.id],(err,result)=>{
+        if(err) err_service.errorNotification(err,'change status users => get status by id')
+        console.log(result[0].displayStatus);
+        let newStatus
+        if(result[0].displayStatus === 0){
+            newStatus = 1
+        }else if(result[0].displayStatus === 1){
+            newStatus = 0
+        }
+        dbConn.query('UPDATE users SET displayStatus = ? WHERE id = ?',[newStatus,req.params.id],(err,result)=>{
+            if(err) err_service.errorNotification(err,'change status users => chang status')
+            if(newStatus === 1){
+                res.send({
+                    status:true,
+                    msg:'ปลดการระงับบัญชีเรียบร้อย'
+                })
+            }else if(newStatus === 0){
+                res.send({
+                    status:true,
+                    msg:'ระงับบัญชีผู้ใช้งานเรียบร้อย'
+                })
+            }
+
         })
     })
 }

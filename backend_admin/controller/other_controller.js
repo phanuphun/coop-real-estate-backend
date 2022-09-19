@@ -1,7 +1,7 @@
 const dbConn = require('../database')
 const err_service = require('./../../service/err_service')
 const lineN = require('line-notify-nodejs')('1ocSpbTTTf6JQIcUcJNDtqqsFfeWFzvbXPXupQhd6JU');
-
+const nodemailer = require('nodemailer');
 
 //***************************************************************************** */
 // Address Data
@@ -70,11 +70,6 @@ module.exports.getZipCode = (req,res) => {
         })
     })
 }
-
-
-
-
-
 
 //***************************************************************************** */
 // user requirements
@@ -210,4 +205,15 @@ module.exports.lineNotify = (data) => {
 
 }
 
-
+//***************************************************************************** */
+// contact
+//***************************************************************************** */
+module.exports.mailSend = () => {
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+          user: 'youremail@gmail.com',
+          pass: 'yourpassword'
+        }
+      });
+}

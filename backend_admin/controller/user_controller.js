@@ -686,7 +686,6 @@ module.exports.deleteCompareProperty = (req,res)=>{
 
 //change status user (banned)
 module.exports.changeStatusUser = (req,res) => {
-    console.log('ssss');
     dbConn.query('SELECT displayStatus FROM users WHERE id = ?',[req.params.id],(err,result)=>{
         if(err) err_service.errorNotification(err,'change status users => get status by id')
         console.log(result[0].displayStatus);
