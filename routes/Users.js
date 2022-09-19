@@ -53,4 +53,6 @@ router.post('/userBuyPackage', validator.verify, multer.uploadImages, multer.res
 router.get('/getUserPackageExpire', validator.verify, controller.getUserPackageExpire)
 
 router.post('/userCancelPackage' ,validator.verify, controller.userCancelPackage)
+
+
 module.exports = router

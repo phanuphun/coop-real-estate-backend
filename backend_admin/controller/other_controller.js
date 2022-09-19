@@ -32,7 +32,7 @@ module.exports.getSubDistricts = (req,res) => {
         if(err) err_service.errorNotification(err,'get sub_districts')
         res.send({
             msg:'get Districts sub_districts',
-            data: result
+            data: result 
         })
     })
 }

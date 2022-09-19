@@ -432,7 +432,11 @@ module.exports = {
         attributes: ["pictureUrl"],
       });
 
+<<<<<<< Updated upstream
       if (oldPic.pictureUrl.length < 20) {
+=======
+      if (oldPic.pictureUrl !=  null && oldPic.pictureUrl != '') {
+>>>>>>> Stashed changes
         try {
           let absolutePath = path.resolve(
             "public/images/avatar/" + oldPic.pictureUrl
@@ -471,7 +475,11 @@ module.exports = {
         attributes: ["displayName", "pictureUrl"],
       });
 
+<<<<<<< Updated upstream
       if (response.pictureUrl.length < 20) {
+=======
+      if (response.pictureUrl != null && response.pictureUrl != '') {
+>>>>>>> Stashed changes
         response.pictureUrl = `${HOST}/images/avatar/${response.pictureUrl}`;
       }
 
@@ -976,4 +984,9 @@ http://localhost:4200/realEstate/money-transfer/${message.id}`,
       res.status(500).send(err.message);
     }
   },
+<<<<<<< Updated upstream
+=======
+
+
+>>>>>>> Stashed changes
 };

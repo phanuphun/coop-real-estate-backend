@@ -161,20 +161,50 @@ const createFlexMessage = (prop) => {
   return bubble;
 };
 
-
 const submitProp = async (req, res) => {
   try {
     const userId = res.locals.userId;
 
     const userDetail = await UserAccountDetails.findOne({
       where: {
-        userId: userId
+        userId: userId,
       },
+<<<<<<< Updated upstream
       attributes: ['email', 'phone']
     })
 
     if ((userDetail.email == null || userDetail.email == '') || (userDetail.phone == null || userDetail.phone == '')){
       return res.send({ status: 4, message: 'ข้อมูลผู้ใช้งานของคุณยังไม่เพียงพอ กรุณาเพิ่มอิเมลและเบอร์โทร' })
+=======
+      attributes: ["email", "phone"],
+      include: [{ model: Users, attributes: ["fname", "lname"] }],
+    });
+    if (
+      userDetail.email == null ||
+      userDetail.email == "" ||
+      userDetail.phone == null ||
+      userDetail.phone == "" ||
+      userDetail.user.fname == null ||
+      userDetail.user.fname == "" ||
+      userDetail.user.lname == null ||
+      userDetail.user.lname == ""
+    ) {
+      if (req.body.gallery) {
+        req.body.gallery.forEach((gallery) => {
+          if (
+            fs.existsSync(path.resolve("public/images/properties/" + gallery))
+          ) {
+            fs.unlinkSync(path.resolve("public/images/properties/" + gallery));
+            console.log('delete', path.resolve("public/images/properties/" + gallery));
+          }
+        });
+      }
+      return res.send({
+        status: 4,
+        message:
+          "ข้อมูลผู้ใช้งานของคุณยังไม่เพียงพอ กรุณาเพิ่ม ชื่อสกุล, อีเมลและเบอร์โทร",
+      });
+>>>>>>> Stashed changes
     }
 
     const dateNow = new Date();
@@ -215,6 +245,17 @@ const submitProp = async (req, res) => {
           },
         }
       );
+
+      if (req.body.gallery) {
+        req.body.gallery.forEach((gallery) => {
+          if (
+            fs.existsSync(path.resolve("public/images/properties/" + gallery))
+          ) {
+            fs.unlinkSync(path.resolve("public/images/properties/" + gallery));
+          }
+        });
+      }
+
       return res.send({
         status: 2,
         message:
@@ -223,6 +264,15 @@ const submitProp = async (req, res) => {
     }
 
     if (propertyAmount >= propertyLimit) {
+      if (req.body.gallery) {
+        req.body.gallery.forEach((gallery) => {
+          if (
+            fs.existsSync(path.resolve("public/images/properties/" + gallery))
+          ) {
+            fs.unlinkSync(path.resolve("public/images/properties/" + gallery));
+          }
+        });
+      }
       return res.send({
         status: 3,
         message: "Your property listing has reached limit.",
@@ -263,7 +313,6 @@ const submitProp = async (req, res) => {
       });
 
       let feat_id = [];
-
       if (req.body.features_id) {
         if (req.body.features_id.length > 1) {
           for (let i = 0; i < req.body.features_id.length; i++) {
@@ -301,84 +350,100 @@ const submitProp = async (req, res) => {
 
       const type = await PropertyType.findOne({
         where: {
-          id: req.body.propType
+          id: req.body.propType,
         },
-        attributes: ['name_th']
-      })
+        attributes: ["name_th"],
+      });
 
       const purpose = await PropertyPurpose.findOne({
         where: {
-          id: req.body.propFor
+          id: req.body.propFor,
         },
-        attributes: ['name_th']
-      })
+        attributes: ["name_th"],
+      });
 
       let address = await SubDistrict.findOne({
         where: {
-          id: req.body.addressId
+          id: req.body.addressId,
         },
-        attributes: ['name_th', 'zip_code'],
+        attributes: ["name_th", "zip_code"],
         include: [
           {
             model: District,
-            attributes: ['name_th'],
+            attributes: ["name_th"],
             include: [
               {
                 model: Provinces,
-                attributes: ['name_th']
-              }
-            ]
-          }
-        ]
-      })
-      let zipCode = address.zip_code
-      let subDist= address.name_th
-      let dist = address.district.name_th
-      let prov = address.district.province.name_th
-      let prop = {}
-      prop.title = req.body.title
-      prop.type = type.name_th
-      prop.purpose = purpose.name_th
-      prop.priceSale = Number(req.body.priceSale)
-      prop.priceRent = Number(req.body.priceRent)
-      if (req.body.propFor == 1) {
-        prop.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(prop.priceSale)}`;
-      } else if (req.body.propFor == 2) {
-        prop.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(prop.priceRent)}/เดือน`;
-      } else if (req.body.propFor == 3) {
-        prop.price = `฿ ${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(prop.priceSale)}, ฿ ${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(prop.priceRent)}/เดือน`;
-      }
-      prop.address = `${req.body.houseNo}, ${subDist}, ${dist}, ${prov}, ${zipCode}`
-      prop.link = `https://127.0.0.1:4200/properties/${propertyId.id}`
-      prop.gallery = `${NGROK}/images/properties/${req.body.gallery[0]}`
-      const flex = createFlexMessage(prop)
-      const multiCast = { type: 'flex', altText: 'new property submitted', contents: flex }
-
-       let user = await Users.findAll({
-          attributes: ['userId'],
-          where: {
-            id: { [Op.ne]: userId  }
+                attributes: ["name_th"],
+              },
+            ],
           },
-          include: [
-            {
-              model: UserRequirement,
-              attributes: ['id'],
-              where: {
-                purposeId: req.body.propFor,
-                typeId: req.body.propType,
-                subDistrictId: req.body.addressId
-              }
-            }
-          ]
-        })
-        let multiUser = []
-        user.forEach((u) => {
-          multiUser.push(u.userId)
-        })
+        ],
+      });
+      let zipCode = address.zip_code;
+      let subDist = address.name_th;
+      let dist = address.district.name_th;
+      let prov = address.district.province.name_th;
+      let prop = {};
+      prop.title = req.body.title;
+      prop.type = type.name_th;
+      prop.purpose = purpose.name_th;
+      prop.priceSale = Number(req.body.priceSale);
+      prop.priceRent = Number(req.body.priceRent);
+      if (req.body.propFor == 1) {
+        prop.price = `${new Intl.NumberFormat("th-TH", {
+          style: "currency",
+          currency: "THB",
+        }).format(prop.priceSale)}`;
+      } else if (req.body.propFor == 2) {
+        prop.price = `${new Intl.NumberFormat("th-TH", {
+          style: "currency",
+          currency: "THB",
+        }).format(prop.priceRent)}/เดือน`;
+      } else if (req.body.propFor == 3) {
+        prop.price = `฿ ${new Intl.NumberFormat("th-TH", {
+          style: "currency",
+          currency: "THB",
+        }).format(prop.priceSale)}, ฿ ${new Intl.NumberFormat("th-TH", {
+          style: "currency",
+          currency: "THB",
+        }).format(prop.priceRent)}/เดือน`;
+      }
+      prop.address = `${req.body.houseNo}, ${subDist}, ${dist}, ${prov}, ${zipCode}`;
+      prop.link = `https://127.0.0.1:4200/properties/${propertyId.id}`;
+      prop.gallery = `${NGROK}/images/properties/${req.body.gallery[0]}`;
+      const flex = createFlexMessage(prop);
+      const multiCast = {
+        type: "flex",
+        altText: "new property submitted",
+        contents: flex,
+      };
+
+      let user = await Users.findAll({
+        attributes: ["userId"],
+        where: {
+          id: { [Op.ne]: userId },
+        },
+        include: [
+          {
+            model: UserRequirement,
+            attributes: ["id"],
+            where: {
+              purposeId: req.body.propFor,
+              typeId: req.body.propType,
+              subDistrictId: req.body.addressId,
+            },
+          },
+        ],
+      });
+      let multiUser = [];
+      user.forEach((u) => {
+        multiUser.push(u.userId);
+      });
 
       if (multiUser.length > 0) {
-       client.multicast(multiUser, multiCast) 
-      //  console.log('notified success');
+        client.multicast(multiUser, multiCast);
+        //  console.log('notified success');
       }
 
       return res.send({
@@ -405,7 +470,9 @@ const userRemoveProp = async (req, res) => {
 
     await gallery.forEach((item) => {
       try {
-        let absolutePath = path.resolve("public/images/properties/" + item.path);
+        let absolutePath = path.resolve(
+          "public/images/properties/" + item.path
+        );
         if (fs.existsSync(absolutePath)) {
           fs.unlinkSync(String(absolutePath));
           console.log("delete " + absolutePath);
@@ -858,13 +925,21 @@ const getUserPropertyById = async (req, res) => {
          where user_sub_props.id = ${req.params.id}     
       `
     );
-    response = response[0][0]
-    
+    response = response[0][0];
+
     let dateNow = new Date();
+<<<<<<< Updated upstream
     if (dateNow > response.packageExpire && response.packageId != 1){
       return res.send({ status: 2 }) // status 2 is for user package is expired, can not watch this properrty
+=======
+    if (
+      (dateNow > response.packageExpire && response.packageId != 1) ||
+      response.displayStatus == 0
+    ) {
+      return res.send({ status: 2 }); // status 2 is for user package is expired or user have been banned, can not watch this properrty
+>>>>>>> Stashed changes
     }
-    
+
     const addiId = response.additionalId;
 
     let featuresList = [];
@@ -926,10 +1001,14 @@ const getUserPropertyById = async (req, res) => {
       `
     );
     agent = agent[0][0];
+<<<<<<< Updated upstream
     if (agent.picture.length < 20) {
+=======
+    if (agent.picture.length != null && agent.picture.length != "") {
+>>>>>>> Stashed changes
       agent.picture = `${HOST}/images/avatar/${agent.picture}`;
     }
-    res.send({ status: 1,  property: response, agent: agent });// status 1 is for user package not expire yet or free package
+    res.send({ status: 1, property: response, agent: agent }); // status 1 is for user package not expire yet or free package
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -1637,7 +1716,9 @@ const updateUserProp = async (req, res) => {
           },
         });
       } else {
-        let absolutePath = path.resolve("public/images/properties/" + req.body.delImage);
+        let absolutePath = path.resolve(
+          "public/images/properties/" + req.body.delImage
+        );
         if (fs.existsSync(absolutePath)) {
           fs.unlinkSync(absolutePath);
         }
@@ -1813,8 +1894,6 @@ const getUserCompare = async (req, res) => {
       order: [["id", "desc"]],
     });
 
-    
-
     let data = [];
     myCompare.forEach((compare) => {
       // console.log(compare);
@@ -1895,7 +1974,6 @@ const clearAllCompare = async (req, res) => {
     res.status(500).send(err.message);
   }
 };
-
 
 module.exports = {
   getUserProperties: getUserProperties,
