@@ -23,7 +23,7 @@ app.use(express.urlencoded({ extended: true}));
 app.use(express.static(path.join(__dirname, "/public"))); 
 
 //database
-const syncDatabase = require("./config/sync-resync");
+// const syncDatabase = require("./config/sync-resync");
 const db = require("./model/index.model");
 db.sequelize.sync();
 // syncDatabase(false, db);
