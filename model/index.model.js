@@ -4,9 +4,9 @@ const { HOST, PORT, USER, PASSWORD, DATABASE } = require('../config/config')
   
 
 const sequelize = new Sequelize(
-    DATABASE,
-    USER,
-    PASSWORD, {
+    'test',
+    'root',
+    '', {
   
         dialect: 'mysql',
         host: '127.0.0.1',

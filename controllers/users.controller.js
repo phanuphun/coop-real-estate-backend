@@ -52,9 +52,9 @@ module.exports = {
         response = await Users.create({
           userId: req.body.userId,
           displayName: req.body.displayName,
-          fname: "-",
-          lname: "-",
-          pictureUrl: req.body.pictureUrl,
+          fname: null,
+          lname: null,
+          pictureUrl: null,
           packageId: req.body.packageId,
           roleId: req.body.roleId,
           subscriptionPeriodId: req.body.subscriptionPeriodId,
@@ -206,7 +206,7 @@ module.exports = {
         where: {
           id: req.params.id,
         },
-        attributes: ["id", "displayName", "fname", "lname", "pictureUrl"],
+        attributes: ["id", "displayName", "fname", "lname", "pictureUrl", 'displayStatus'],
         include: [
           {
             model: UserAccountDetails,
@@ -214,15 +214,20 @@ module.exports = {
           },
         ],
       });
+
+      if (response.displayStatus == 0 || response.displayStatus == false) {
+        return res.send({ status: 2 }) // status 2 is for user got banned and cant watch profile
+      }
+
       let data = {};
       data.id = response.id;
       data.displayName = response.displayName;
       data.fname = response.fname;
       data.lname = response.lname;
-      if (response.pictureUrl.length < 20) {
+      if (response.pictureUrl != null && response.pictureUrl != '') {
         data.picture = `${HOST}/images/avatar/${response.pictureUrl}`;
       } else {
-        data.picture = response.pictureUrl;
+        data.picture = `${HOST}/images/avatar/default.jpg`;;
       }
       data.email = response.user_account_detail["email"];
       data.phone = response.user_account_detail["phone"];
@@ -249,7 +254,7 @@ module.exports = {
         FROM users
         INNER JOIN user_account_details detail on detail.userId = users.id
         INNER JOIN user_sub_props on user_sub_props.userId = users.id
-        where (users.packageExpire > cast(now() as date) and users.packageId != 1) or packageId = 1
+        where (users.packageExpire > cast(now() as date) and users.packageId != 1 and users.displayStatus = 1) or (users.packageId = 1 and users.displayStatus = 1)
         ORDER BY users.packageId desc
         `
       )
@@ -284,10 +289,10 @@ module.exports = {
         data.displayName = response[i].displayName;
         data.fname = response[i].fname;
         data.lname = response[i].lname;
-        if (response[i].pictureUrl.length < 20) {
+        if (response[i].pictureUrl != null && response[i].pictureUrl != '') {
           data.picture = `${HOST}/images/avatar/${response[i].pictureUrl}`;
         } else {
-          data.picture = response[i].pictureUrl;
+          data.picture = `${HOST}/images/avatar/default.jpg`;
         }
         data.email = response[i].user_account_detail["email"];
         data.phone = response[i].user_account_detail["phone"];
@@ -336,10 +341,10 @@ module.exports = {
       data.displayName = response.displayName;
       data.fname = response.fname;
       data.lname = response.lname;
-      if (response.pictureUrl.length > 20) {
-        data.picture = response.pictureUrl;
-      } else {
+      if (response.pictureUrl != null && response.pictureUrl != '') {
         data.picture = `${HOST}/images/avatar/${response.pictureUrl}`;
+      } else {
+        data.picture = `${HOST}/images/avatar/default.jpg`;
       }
       if (detail) {
         data.email = detail.email;
@@ -434,7 +439,7 @@ module.exports = {
         attributes: ["pictureUrl"],
       });
 
-      if (oldPic.pictureUrl.length < 20) {
+      if (oldPic.pictureUrl !=  null && oldPic.pictureUrl != '') {
         try {
           let absolutePath = path.resolve(
             "public/images/avatar/" + oldPic.pictureUrl
@@ -473,8 +478,10 @@ module.exports = {
         attributes: ["displayName", "pictureUrl"],
       });
 
-      if (response.pictureUrl.length < 20) {
+      if (response.pictureUrl != null && response.pictureUrl != '') {
         response.pictureUrl = `${HOST}/images/avatar/${response.pictureUrl}`;
+      } else {
+        response.pictureUrl = `${HOST}/images/avatar/default.jpg`;
       }
 
       res.send({ name: response.displayName, img: response.pictureUrl });
@@ -978,4 +985,5 @@ ${ADMIN_PATH}/realEstate/money-transfer/${message.id}`,
       res.status(500).send(err.message);
     }
   },
+
 };

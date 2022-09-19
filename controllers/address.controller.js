@@ -1,4 +1,3 @@
-const db = require("../config/database");
 const {
   Provinces,
   District,
@@ -16,7 +15,7 @@ module.exports = {
       });
       res.send(response);
     } catch (error) {
-      res.status(500).send(error.message);
+      res.status(500).send(error.message); 
     }
   },
   getProvincesss: async (req, res) => {
