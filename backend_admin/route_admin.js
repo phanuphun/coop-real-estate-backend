@@ -320,4 +320,9 @@ route.post('/admin/verifyToken',auth.requiredToken,auth.checkToken)
 //Line
 //***************************************************************************** */
 route.get('/admin/lineN',other_ct.lineNotify)
+
+//***************************************************************************** */
+//Line
+//***************************************************************************** */
+route.get('/admin/mailSend',other_ct.mailSend)
 module.exports = route ;

@@ -212,8 +212,23 @@ module.exports.mailSend = () => {
     var transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-          user: 'youremail@gmail.com',
-          pass: 'yourpassword'
-        }
-      });
+               user: 'parnuphun5555@gmail.com',
+               pass: 'eckyyvnxbaywprmg'
+           }
+       });
+       const mailOptions = {
+         from: 'parnuphun5555@email.com', // sender address
+         to: 'parnuphun1598@gmail.com', // list of receivers
+         subject: 'test your fucking contact', // Subject line
+         html: '<p>ทดสอบ nodemailer <3 </p>'// plain text body
+       };
+       transporter.sendMail(mailOptions, function (err, info) {
+          if(err)
+            console.log(err)
+          else
+            res.send({
+                msg:'its work  !'
+            })
+            console.log('its work  !');
+       });
 }
