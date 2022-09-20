@@ -59,6 +59,12 @@ app.use('/line', require('./routes/LineNotify'))
 //app use detailReport route
 app.use('/detailReport', require('./routes/DetailReport'))
 
+//app use contact us Router
+app.use('/contactUs', require('./routes/ContactUs'))
+
+//app use feedback router
+app.use('/feedback', require('./routes/Feedback'))
+
 //admin route
 app.use(route_admin)
 
