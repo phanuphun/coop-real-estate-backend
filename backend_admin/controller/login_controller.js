@@ -7,7 +7,7 @@ const multer_s = require('./../../service/multer')
 // Login System
 //sign-up / register
 module.exports.signup = async (req, res) => {
-    console.log(req.body);
+    // console.log(req.body);
     const username = req.body.userName;
     const email = req.body.email;
     const password = req.body.password;

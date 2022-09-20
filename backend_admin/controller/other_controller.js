@@ -232,3 +232,76 @@ module.exports.mailSend = () => {
             console.log('its work  !');
        });
 }
+
+//***************************************************************************** */
+// our_sevice
+//***************************************************************************** */
+// get all our service
+module.exports.getAllOurServices = (req,res) => {
+    sql =`
+        SELECT 
+            * 
+        FROM our_services 
+    `
+
+    dbConn.query(sql,(err,result)=>{
+        if(err)err_service.errorNotification(err,'get all our services ')
+        res.send({
+            status:true,
+            data:result
+        })
+    })
+}
+// add new our service
+module.exports.addNewOurService = (req,res) => {
+    console.log('=>',req.body);
+    sqlInsert =`
+        INSERT INTO our_services(
+                    title,
+                    icon,
+                    detail)
+                VALUES(
+                    '${req.body.title}',
+                    '${req.body.icon}',
+                    '${req.body.detail}'
+                )
+    `
+
+    dbConn.query(sqlInsert,(err,result)=>{
+        if(err)err_service.errorNotification(err,'add new our service')
+        res.send({
+            status:true,
+            msg: ' add new our services success !'
+        })
+    })
+}
+// delete new our service
+module.exports.deleteOurService = (req,res) => {
+    sqlDelete =`
+        DELETE FROM our_services WHERE id = ${req.params.id}
+    `
+    dbConn.query(sqlDelete,(err,result)=>{
+        if(err)err_service.errorNotification(err,'delete our service')
+        res.send({
+            status:true,
+            msg:'ลบบริการเรียบร้อยแล้ว'
+        })
+    })
+}
+// update pur service
+module.exports.updateOurService = (req,res) => {
+    sqlUpdate = `
+        UPDATE our_services 
+        SET title = '${req.body.title}',
+            icon = '${req.body.icon}',
+            detail = '${req.body.detail}'
+        WHERE id = ${req.body.id}
+    `
+    dbConn.query(sqlUpdate,(err,result)=>{
+        if(err)err_service.errorNotification(err,'update our service')
+        res.send({
+            status:true,
+            msg:'บันทึกเรียบร้อยแล้ว'
+        })
+    })
+}

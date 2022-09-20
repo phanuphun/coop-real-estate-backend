@@ -292,6 +292,21 @@ route.delete('/admin/deleteMoneyTransfer/:id',auth.requiredToken,moneyTransfer_c
 route.post('/admin/seachMoneyTransfer',auth.requiredToken,moneyTransfer_ct.seachMoneyTransfer)
 
 //***************************************************************************** */
+//our service
+//***************************************************************************** */
+// get all our services
+route.get('/admin/getAllOurServices',auth.requiredToken,other_ct.getAllOurServices)
+
+// add new our service
+route.post('/admin/addNewOurService',auth.requiredToken,other_ct.addNewOurService)
+
+// delete our service
+route.delete('/admin/deleteOurService/:id',auth.requiredToken,other_ct.deleteOurService)
+
+// update our service
+route.put('/admin/updateOurService',auth.requiredToken,other_ct.updateOurService)
+
+//***************************************************************************** */
 // user req
 //***************************************************************************** */
 // get user req by user
