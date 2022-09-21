@@ -627,8 +627,10 @@ module.exports.deleteUser = (req,res) => {
         if(err) err_service.errorNotification(err,'delete user => get picture name ')
         let picture =  result[0].pictureUrl
         // ลบ picture user
-        if(picture.length <= 20 ){
-            multer_s.deleteImage('avatar/'+picture)
+        if(picture !== '' || picture !== ' '){
+            if(picture.length <= 20 ){
+                multer_s.deleteImage('avatar/'+picture)
+            }
         }
         dbConn.query(sqlGetPropertyId,(err,result)=>{
             if(err) err_service.errorNotification(err,'delete user => get property id ')

@@ -332,12 +332,22 @@ route.delete('/admin/delete_features/:id',auth.requiredToken,other_ct.deleteFeat
 route.post('/admin/verifyToken',auth.requiredToken,auth.checkToken)
 
 //***************************************************************************** */
-//Line
+// Line test
 //***************************************************************************** */
 route.get('/admin/lineN',other_ct.lineNotify)
 
 //***************************************************************************** */
-//Line
+// contact
 //***************************************************************************** */
+// send mail test
 route.get('/admin/mailSend',other_ct.mailSend)
+
+//get all contact us 
+route.get('/admin/getAllContactUs',auth.requiredToken,other_ct.getAllContactUs)
+
+//delete contact us 
+route.delete('/admin/deleteContactUs/:id',auth.requiredToken,other_ct.deleteContactUs)
+
+//reply contact us 
+route.put('/admin/replyContactUs',auth.requiredToken,other_ct.replyContactUs)
 module.exports = route ;

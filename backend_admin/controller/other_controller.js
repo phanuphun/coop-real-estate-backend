@@ -72,6 +72,79 @@ module.exports.getZipCode = (req,res) => {
 }
 
 //***************************************************************************** */
+// our_sevice
+//***************************************************************************** */
+// get all our service
+module.exports.getAllOurServices = (req,res) => {
+    sql =`
+        SELECT 
+            * 
+        FROM our_services 
+    `
+
+    dbConn.query(sql,(err,result)=>{
+        if(err)err_service.errorNotification(err,'get all our services ')
+        res.send({
+            status:true,
+            data:result
+        })
+    })
+}
+// add new our service
+module.exports.addNewOurService = (req,res) => {
+    console.log('=>',req.body);
+    sqlInsert =`
+        INSERT INTO our_services(
+                    title,
+                    icon,
+                    detail)
+                VALUES(
+                    '${req.body.title}',
+                    '${req.body.icon}',
+                    '${req.body.detail}'
+                )
+    `
+
+    dbConn.query(sqlInsert,(err,result)=>{
+        if(err)err_service.errorNotification(err,'add new our service')
+        res.send({
+            status:true,
+            msg: ' add new our services success !'
+        })
+    })
+}
+// delete new our service
+module.exports.deleteOurService = (req,res) => {
+    sqlDelete =`
+        DELETE FROM our_services WHERE id = ${req.params.id}
+    `
+    dbConn.query(sqlDelete,(err,result)=>{
+        if(err)err_service.errorNotification(err,'delete our service')
+        res.send({
+            status:true,
+            msg:'ลบบริการเรียบร้อยแล้ว'
+        })
+    })
+}
+// update pur service
+module.exports.updateOurService = (req,res) => {
+    sqlUpdate = `
+        UPDATE our_services 
+        SET title = '${req.body.title}',
+            icon = '${req.body.icon}',
+            detail = '${req.body.detail}'
+        WHERE id = ${req.body.id}
+    `
+    dbConn.query(sqlUpdate,(err,result)=>{
+        if(err)err_service.errorNotification(err,'update our service')
+        res.send({
+            status:true,
+            msg:'บันทึกเรียบร้อยแล้ว'
+        })
+    })
+}
+
+//***************************************************************************** */
 // user requirements
 //***************************************************************************** */
 // get user require ment by user id
@@ -233,75 +306,85 @@ module.exports.mailSend = () => {
        });
 }
 
-//***************************************************************************** */
-// our_sevice
-//***************************************************************************** */
-// get all our service
-module.exports.getAllOurServices = (req,res) => {
+// get all conctact us 
+module.exports.getAllContactUs = (req,res) => {
     sql =`
         SELECT 
-            * 
-        FROM our_services 
+            *
+        FROM contact_us
+        ORDER BY replyStatus ASC ,
+                contactId ASC
+        LIMIT 100;
     `
-
     dbConn.query(sql,(err,result)=>{
-        if(err)err_service.errorNotification(err,'get all our services ')
+        if(err)err_service.errorNotification(err,'get all contact us')
         res.send({
             status:true,
             data:result
         })
     })
 }
-// add new our service
-module.exports.addNewOurService = (req,res) => {
-    console.log('=>',req.body);
-    sqlInsert =`
-        INSERT INTO our_services(
-                    title,
-                    icon,
-                    detail)
-                VALUES(
-                    '${req.body.title}',
-                    '${req.body.icon}',
-                    '${req.body.detail}'
-                )
+
+//delte contact uus 
+module.exports.deleteContactUs = (req,res) => {
+    sql =  `
+        DELETE FROM contact_us
+        WHERE contactId = ${req.params.id}
     `
 
-    dbConn.query(sqlInsert,(err,result)=>{
-        if(err)err_service.errorNotification(err,'add new our service')
+    dbConn.query(sql,(err,result)=>{
+        if(err)err_service.errorNotification(err,'delete contact us ')
         res.send({
             status:true,
-            msg: ' add new our services success !'
+            msg:'ลบผู้ติดต่อเรียบร้อย'
         })
     })
 }
-// delete new our service
-module.exports.deleteOurService = (req,res) => {
-    sqlDelete =`
-        DELETE FROM our_services WHERE id = ${req.params.id}
-    `
-    dbConn.query(sqlDelete,(err,result)=>{
-        if(err)err_service.errorNotification(err,'delete our service')
-        res.send({
-            status:true,
-            msg:'ลบบริการเรียบร้อยแล้ว'
-        })
-    })
-}
-// update pur service
-module.exports.updateOurService = (req,res) => {
-    sqlUpdate = `
-        UPDATE our_services 
-        SET title = '${req.body.title}',
-            icon = '${req.body.icon}',
-            detail = '${req.body.detail}'
-        WHERE id = ${req.body.id}
-    `
-    dbConn.query(sqlUpdate,(err,result)=>{
-        if(err)err_service.errorNotification(err,'update our service')
-        res.send({
-            status:true,
-            msg:'บันทึกเรียบร้อยแล้ว'
-        })
-    })
+
+// reply contact 
+module.exports.replyContactUs = (req,res)=> {
+
+    // mail setting 
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'parnuphun5555@gmail.com',
+            pass: 'eckyyvnxbaywprmg'
+        }
+    });
+
+    console.log(req.body);
+
+    // mail header 
+    let contactId = req.body.contactId
+    let contactEmail = req.body.email 
+    let subject = 'ตอบกลับ' + req.body.subject
+    let replyMessage = req.body.replyMessage
+
+    const mailOptions = {
+        from: 'parnuphun5555@email.com', // sender address
+        to: contactEmail, // list of receivers
+        subject: subject, // Subject line
+        html: `<p> ${replyMessage} </p>`// plain text body
+    };
+
+    transporter.sendMail(mailOptions, function (err, info) {
+        if(err)
+            console.log(err)
+        else
+
+            sqlUpdateReplyStatus = `
+                UPDATE contact_us
+                SET replyStatus = 1 
+                WHERE contactId = ${contactId}
+            `
+            dbConn.query(sqlUpdateReplyStatus,(err,result)=>{
+                if(err)err_service.errorNotification(err,'update reply status after send mail ')
+                res.send({
+                    status:true,
+                    msg:'ตอบกลับอีเมลล์เรียบร้อยแล้ว' 
+                })
+                console.log('its work  !');
+            })
+    });
 }
