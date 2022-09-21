@@ -75,7 +75,7 @@ module.exports.getFAQByID = (req,res) => {
 }
 //insert new FAQ
 module.exports.insertFAQ = (req,res) => {
-    dbConn.query('INSERT INTO faqs(faqQ,faqA,category) VALUES(?,?,?)',[req.body.faq_Q,req.body.faq_A,req.body.faq_category],(err,result)=>{
+    dbConn.query('INSERT INTO faqs(faqQ,faqA,category,displayStatus) VALUES(?,?,?,1)',[req.body.faq_Q,req.body.faq_A,req.body.faq_category],(err,result)=>{
         if(err) err_service.errorNotification(err,'insertFAQ')
         res.send({
             status:true,

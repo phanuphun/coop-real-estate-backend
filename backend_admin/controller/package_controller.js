@@ -114,7 +114,21 @@ module.exports.insertPackage = (req, res) => {
                         msg:'ชื่อแพ็คเกจไม่ถูกต้อง !'
                     })
                 }else if(result){
-                    sql_insert_packageName = `INSERT INTO packages(name) VALUES (?)`;
+                    sql_insert_packageName = `
+                        INSERT INTO packages(
+                            name,
+                            description,
+                            price1M, 
+                            price3M,
+                            price6M,
+                            propertyLimit)
+                        VALUES (
+                            '${packageName}',
+                            'เพิ่มรายละเอียดแพ็คเกจ',
+                            0,
+                            0,
+                            0,
+                            0)`;
                     dbConn.query(sql_insert_packageName, [packageName], (err, result) => {
                         if (err) err_service.errorNotification(err,'add new package => insert new package')
                         res.send({

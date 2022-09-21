@@ -11,16 +11,34 @@ const dateAndTime = require('date-and-time')
 // inCome 
 module.exports.inComeChartData = (req,res) => {
     sqlDailyIncome = `
-        SELECT 
-            COUNT(id) AS orderCount ,
-            SUM(price) AS totalDailyIncomePerDay ,
-            dateTransfer AS days
-        FROM money_transfers
-        WHERE confirm = 1 AND (dateTransfer BETWEEN ADDDATE(CURRENT_TIMESTAMP(), INTERVAL -6 DAY) AND CURRENT_TIMESTAMP())
-        GROUP BY CAST(dateTransfer AS DATE)
-        ORDER BY days ASC
-        LIMIT 7;
+    SELECT 
+        count(id) as orderCount ,
+        sum(price) as totalDailyIncomePerDay ,
+        cast(dateTransfer as date) as days,
+        ADDDATE(cast(current_timestamp() as date), INTERVAL -6 DAY)  as days_6,
+        cast(current_timestamp() as date) as currentTime
+
+    FROM money_transfers
+    WHERE confirm = 1 AND 
+            (cast(dateTransfer AS date) BETWEEN 
+                ADDDATE(cast(current_timestamp() as date), INTERVAL -6 DAY) 
+                AND 
+                cast(current_timestamp() as date) 
+            )
+    GROUP BY cast(dateTransfer AS date)
+    ORDER BY days ASC
+    LIMIT 7;
     `
+    oldSqlDailyIncome = `SELECT 
+                COUNT(id) AS orderCount ,
+                SUM(price) AS totalDailyIncomePerDay ,
+                dateTransfer AS days
+            FROM money_transfers
+            WHERE confirm = 1 AND (dateTransfer BETWEEN ADDDATE(CURRENT_TIMESTAMP(), INTERVAL -6 DAY) AND CURRENT_TIMESTAMP())
+            GROUP BY CAST(dateTransfer AS DATE)
+            ORDER BY days ASC
+            LIMIT 7;`
+
     sqlMonthIncome = `
         SELECT 
             COUNT(id) AS orderCount ,
@@ -290,8 +308,22 @@ module.exports.addMoneyTransfer = (req,res) => {
     WHERE money_transfers.userId = ${userId}
     ORDER BY money_transfers.id DESC LIMIT 1;`
 
-    sql=`INSERT INTO money_transfers(userId,packageId,periodId,price,pictureUrl,dateTransfer)
-        VALUES(${userId},${packageId},'${packagePeriod}','${packagePrice}','${image}','${dateTransfer}');`
+    sql=`INSERT INTO money_transfers(
+                        userId,
+                        packageId,
+                        periodId,
+                        price,
+                        pictureUrl,
+                        dateTransfer,
+                        confirm)
+                    VALUES(
+                        ${userId},
+                        ${packageId},
+                        '${packagePeriod}',
+                        '${packagePrice}',
+                        '${image}',
+                        '${dateTransfer}'),
+                        0;`
         dbConn.query(sql,(err,result)=>{
             if(err)err_service.errorNotification(err,'add money transfer')
             dbConn.query(sqlLineNotify,(err,result)=>{

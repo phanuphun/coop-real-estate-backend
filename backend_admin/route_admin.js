@@ -339,9 +339,6 @@ route.get('/admin/lineN',other_ct.lineNotify)
 //***************************************************************************** */
 // contact
 //***************************************************************************** */
-// send mail test
-route.get('/admin/mailSend',other_ct.mailSend)
-
 //get all contact us 
 route.get('/admin/getAllContactUs',auth.requiredToken,other_ct.getAllContactUs)
 
@@ -350,4 +347,18 @@ route.delete('/admin/deleteContactUs/:id',auth.requiredToken,other_ct.deleteCont
 
 //reply contact us 
 route.put('/admin/replyContactUs',auth.requiredToken,other_ct.replyContactUs)
+
+//search contact 
+route.post('/admin/searchContactUs',auth.requiredToken,other_ct.searchContactUs)
+
+//***************************************************************************** */
+// about us
+//***************************************************************************** */
+//get about us
+route.get('/admin/getAboutUs',auth.requiredToken,other_ct.getAboutUs)
+
+//update about us
+route.put('/admin/updateAboutUs',auth.requiredToken,other_ct.updateAboutUs)
+
+
 module.exports = route ;

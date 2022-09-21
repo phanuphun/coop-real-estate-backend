@@ -145,6 +145,115 @@ module.exports.updateOurService = (req,res) => {
 }
 
 //***************************************************************************** */
+// contact
+//***************************************************************************** */
+// seach 
+module.exports.searchContactUs = (req,res) => {
+    let searchText = `'${req.body.searchText}%'`
+    sql = `
+    SELECT *
+    FROM contact_us
+    WHERE
+    (
+        (name LIKE ${searchText} OR ${searchText} is null)
+        OR(email LIKE  ${searchText} OR ${searchText} is null)
+        OR(phone LIKE ${searchText} OR ${searchText} is null)
+    ) ;
+    `
+    dbConn.query(sql,(err,result)=>{
+        if(err)err_service.errorNotification(err,'search contact')
+        res.send({
+            status:true,
+            data:result,
+        })
+    })
+
+}
+
+// get all conctact us 
+module.exports.getAllContactUs = (req,res) => {
+    sql =`
+        SELECT 
+            *
+        FROM contact_us
+        ORDER BY replyStatus ASC ,
+                contactId ASC
+        LIMIT 100;
+    `
+    dbConn.query(sql,(err,result)=>{
+        if(err)err_service.errorNotification(err,'get all contact us')
+        res.send({
+            status:true,
+            data:result
+        })
+    })
+}
+
+//delte contact uus 
+module.exports.deleteContactUs = (req,res) => {
+    sql =  `
+        DELETE FROM contact_us
+        WHERE contactId = ${req.params.id}
+    `
+
+    dbConn.query(sql,(err,result)=>{
+        if(err)err_service.errorNotification(err,'delete contact us ')
+        res.send({
+            status:true,
+            msg:'ลบผู้ติดต่อเรียบร้อย'
+        })
+    })
+}
+
+// reply contact 
+module.exports.replyContactUs = (req,res)=> {
+
+    // mail setting 
+    var transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'parnuphun5555@gmail.com',
+            pass: 'eckyyvnxbaywprmg'
+        }
+    });
+
+    console.log(req.body);
+
+    // mail header 
+    let contactId = req.body.contactId
+    let contactEmail = req.body.email 
+    let subject = 'ตอบกลับ : ' + req.body.subject
+    let replyMessage = req.body.replyMessage
+
+    const mailOptions = {
+        from: 'DeltaProperty', // sender address
+        to: contactEmail, // list of receivers
+        subject: subject, // Subject line
+        html: `<p> ${replyMessage} </p>`// plain text body
+    };
+
+    transporter.sendMail(mailOptions, function (err, info) {
+        if(err)
+            console.log(err)
+        else
+
+            sqlUpdateReplyStatus = `
+                UPDATE contact_us
+                SET replyStatus = 1 
+                WHERE contactId = ${contactId}
+            `
+            dbConn.query(sqlUpdateReplyStatus,(err,result)=>{
+                if(err)err_service.errorNotification(err,'update reply status after send mail ')
+                res.send({
+                    status:true,
+                    msg:'ตอบกลับอีเมลล์เรียบร้อยแล้ว' 
+                })
+            })
+    });
+}
+
+
+//***************************************************************************** */
 // user requirements
 //***************************************************************************** */
 // get user require ment by user id
@@ -279,112 +388,41 @@ module.exports.lineNotify = (data) => {
 }
 
 //***************************************************************************** */
-// contact
+// about us 
 //***************************************************************************** */
-module.exports.mailSend = () => {
-    var transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-               user: 'parnuphun5555@gmail.com',
-               pass: 'eckyyvnxbaywprmg'
-           }
-       });
-       const mailOptions = {
-         from: 'parnuphun5555@email.com', // sender address
-         to: 'parnuphun1598@gmail.com', // list of receivers
-         subject: 'test your fucking contact', // Subject line
-         html: '<p>ทดสอบ nodemailer <3 </p>'// plain text body
-       };
-       transporter.sendMail(mailOptions, function (err, info) {
-          if(err)
-            console.log(err)
-          else
-            res.send({
-                msg:'its work  !'
-            })
-            console.log('its work  !');
-       });
-}
 
-// get all conctact us 
-module.exports.getAllContactUs = (req,res) => {
+// get about us
+module.exports.getAboutUs = (req,res) => {
     sql =`
         SELECT 
             *
-        FROM contact_us
-        ORDER BY replyStatus ASC ,
-                contactId ASC
-        LIMIT 100;
+        FROM about_us
     `
+
     dbConn.query(sql,(err,result)=>{
-        if(err)err_service.errorNotification(err,'get all contact us')
+        if(err)err_service.errorNotification(err,'get about us')
         res.send({
             status:true,
-            data:result
+            data:result[0]
         })
     })
 }
 
-//delte contact uus 
-module.exports.deleteContactUs = (req,res) => {
-    sql =  `
-        DELETE FROM contact_us
-        WHERE contactId = ${req.params.id}
+// update about us 
+module.exports.updateAboutUs =(req,res)=>{
+    sql =  ` 
+        UPDATE about_us
+        SET ourStory = '${req.body.ourStory}' , 
+            aboutCompany = '${req.body.aboutCompany}' ,
+            vision = '${req.body.vision}'
+        WHERE id = 1 ;
     `
 
     dbConn.query(sql,(err,result)=>{
-        if(err)err_service.errorNotification(err,'delete contact us ')
+        if(err)err_service.errorNotification(err,'update aout us ')
         res.send({
             status:true,
-            msg:'ลบผู้ติดต่อเรียบร้อย'
+            msg: 'บันทึกเรียบร้อยแล้ว'
         })
     })
-}
-
-// reply contact 
-module.exports.replyContactUs = (req,res)=> {
-
-    // mail setting 
-    var transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: 'parnuphun5555@gmail.com',
-            pass: 'eckyyvnxbaywprmg'
-        }
-    });
-
-    console.log(req.body);
-
-    // mail header 
-    let contactId = req.body.contactId
-    let contactEmail = req.body.email 
-    let subject = 'ตอบกลับ' + req.body.subject
-    let replyMessage = req.body.replyMessage
-
-    const mailOptions = {
-        from: 'parnuphun5555@email.com', // sender address
-        to: contactEmail, // list of receivers
-        subject: subject, // Subject line
-        html: `<p> ${replyMessage} </p>`// plain text body
-    };
-
-    transporter.sendMail(mailOptions, function (err, info) {
-        if(err)
-            console.log(err)
-        else
-
-            sqlUpdateReplyStatus = `
-                UPDATE contact_us
-                SET replyStatus = 1 
-                WHERE contactId = ${contactId}
-            `
-            dbConn.query(sqlUpdateReplyStatus,(err,result)=>{
-                if(err)err_service.errorNotification(err,'update reply status after send mail ')
-                res.send({
-                    status:true,
-                    msg:'ตอบกลับอีเมลล์เรียบร้อยแล้ว' 
-                })
-                console.log('its work  !');
-            })
-    });
 }

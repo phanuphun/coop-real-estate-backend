@@ -13,6 +13,7 @@ let date = dateAndTime.format(new Date(),'YYYY/MM/DD HH:mm:ss')
 //update user image
 function updateImage(image,id){
     dbConn.query('UPDATE users SET pictureUrl = ? WHERE id = ? ',[image,id],(err,result)=>{
+        console.log('update image <==');
         if(err) err_service.errorNotification(err,'update user => delete image')
         console.log('update succc');
     })
@@ -109,6 +110,7 @@ module.exports.seachUser = (req,res) => {
             OR (users.lname LIKE ${name} OR ${name} is null)
             OR (user_account_details.email LIKE  ${name} OR ${name} is null)
             OR (user_account_details.phone LIKE  ${name} OR ${name} is null)
+            OR (users.displayName LIKE ${name} OR ${name} is null )
         ) AND (users.packageId = ${package} OR ${package} is null)
 
     )
@@ -129,6 +131,7 @@ module.exports.seachUser = (req,res) => {
             OR (users.lname LIKE ${name} OR ${name} is null)
             OR (user_account_details.email LIKE  ${name} OR ${name} is null)
             OR (user_account_details.phone LIKE  ${name} OR ${name} is null)
+            OR (users.displayName LIKE ${name} OR ${name} is null )
         ) AND (users.packageId = ${package} OR ${package} is null)
 
     )
@@ -185,6 +188,7 @@ module.exports.seachUserDialog = (req,res) => {
     (
         ((CONCAT(users.fname,'',users.lname) LIKE ${name}) OR ${name} is null)
         OR((CONCAT(users.fname,' ',users.lname) LIKE ${name}) OR ${name} is null)
+        OR (users.displayName LIKE ${name} OR ${name} is null )
     )
     ORDER BY users.id DESC
     LIMIT ${limit.items},${limit.size};`
@@ -380,12 +384,33 @@ module.exports.updateUser = (req,res) => {
     phone = req.body.phone
     organization = req.body.organization
     image = req.body.gallery[0]
+
+    if(fname === null){
+        fname = ''
+    }
+    if(lname === null){
+        lname = ''
+    }
+    if(email === null){
+        email = ''
+    }
+    if(phone === null){
+        phone = ''
+    }
+    if(organization === null){
+        organization = ''
+    }
+    if(image === null){
+        image = ''
+    }
     // console.log(req.body);
     if(req.body.gallery.length > 0 ){
         dbConn.query('SELECT pictureUrl FROM users WHERE id = ?',[id],(err,result)=>{
             if(err) err_service.errorNotification(err,'get old picture name ')
             if(result[0].pictureUrl !== ""){
                 let oldImage = result[0].pictureUrl
+                console.log('delete image <==');
+
                 fs.unlink(path.resolve('public/images/avatar/'+oldImage),(err)=>{
                     if(err) err_service.errorNotification(err,'update user => delete image ') ;
                     updateImage(image,id)
@@ -627,10 +652,9 @@ module.exports.deleteUser = (req,res) => {
         if(err) err_service.errorNotification(err,'delete user => get picture name ')
         let picture =  result[0].pictureUrl
         // ลบ picture user
-        if(picture !== '' || picture !== ' '){
-            if(picture.length <= 20 ){
-                multer_s.deleteImage('avatar/'+picture)
-            }
+        console.log(picture !== '');
+        if(picture !== ''){
+            multer_s.deleteImage('avatar/'+picture)
         }
         dbConn.query(sqlGetPropertyId,(err,result)=>{
             if(err) err_service.errorNotification(err,'delete user => get property id ')
