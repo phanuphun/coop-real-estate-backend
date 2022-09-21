@@ -32,38 +32,9 @@ app.get('/', (req, res) => {
   res.send('welcome to real-estate api')
 })
 
-//app use property route
-app.use('/property', require('./routes/Property'))
+//user cliend side route
+app.use('/api', require('./routes/index.router'))
 
-//app use address route
-app.use('/address', require('./routes/Address'))
-
-//app userProperty route
-app.use('/userProperty', require('./routes/UserProperty'))
-
-//app Users route
-app.use('/users', require('./routes/Users'))
-
-//app use faqs route
-app.use('/faqs', require('./routes/Faqs'))
-
-//app use packages route
-app.use('/packages', require('./routes/Package'))
-
-//app use Our Services route
-app.use('/ourServices', require('./routes/OurService'))
-
-//app use line Route for webhook
-app.use('/line', require('./routes/LineNotify'))
-
-//app use detailReport route
-app.use('/detailReport', require('./routes/DetailReport'))
-
-//app use contact us Router
-app.use('/contactUs', require('./routes/ContactUs'))
-
-//app use feedback router
-app.use('/feedback', require('./routes/Feedback'))
 
 //admin route
 app.use(route_admin)
