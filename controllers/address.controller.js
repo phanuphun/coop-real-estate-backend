@@ -9,8 +9,10 @@ const json_data = require("../public/asset/sub-districts.json");
 module.exports = {
   getProvinces: async (req, res) => {
     try {
+      const lang = req.params.lang
+      console.log(req.params.lang);
       const response = await Provinces.findAll({
-        order: [["GeographyId", "ASC"]],
+        order: [[ lang == 'th' ? "name_th" : "name_en", "ASC"]],
         attributes: ["id", "name_th", "name_en"],
       });
       res.send(response);
@@ -18,33 +20,15 @@ module.exports = {
       res.status(500).send(error.message); 
     }
   },
-  getProvincesss: async (req, res) => {
-    try {
-      const response = await Provinces.findAll({
-        order: [["GeographyId", "ASC"]],
-        where: { id: req.params.provinceId },
-        include: [
-          {
-            model: District,
-            where: { id: req.params.districtId },
-            include: [
-              { model: SubDistrict, where: { id: req.params.subDistrictId } },
-            ],
-          },
-        ],
-      });
-      res.send(response);
-    } catch (error) {
-      res.status(500).send(error.message);
-    }
-  },
   getDistricts: async (req, res) => {
     try {
+      const lang = req.params.lang
       const response = await District.findAll({
         where: {
           provinceId: req.params.id,
         },
         attributes: ["id", "name_th", "name_en", "ProvinceId"],
+        order: [[ lang == 'th' ? "name_th" : "name_en", "ASC"]]
       });
       res.send(response);
     } catch (err) {
@@ -53,11 +37,13 @@ module.exports = {
   },
   getSubDistricts: async (req, res) => {
     try {
+      const lang = req.params.lang
       const response = await SubDistrict.findAll({
         where: {
           districtId: req.params.id,
         },
         attributes: ["id", "name_th", "name_en"],
+        order: [[ lang == 'th' ? "name_th" : "name_en", "ASC"]]
       });
       res.send(response);
     } catch (err) {
@@ -76,24 +62,6 @@ module.exports = {
     }
   },
 
-  testPage: async (req, res) => {
-    try {
-      const count = await sequelize.query(`
-        select count(*) as length from subdistricts 
-        order by id asc
-      `);
-
-      const response = await sequelize.query(`
-      select * from subdistricts 
-      order by id asc LIMIT ${req.params.perPage} OFFSET ${req.params.page}
-      `);
-
-      res.send({ count: count[0], data: response[0] });
-    } catch (err) {
-      res.status(500).send(err.message);
-    }
-  },
-
   getProvinceLatLng: async(req, res) => {
     try {
       const response = await Provinces.findOne({
@@ -107,24 +75,4 @@ module.exports = {
       res.status(500).send(err.message)
     }
   }
-
-  // setProvinceLatLng: async (req, res) => {
-  //   try {
-  //     const response = await Provinces.update(
-  //       {
-  //         lat: req.body.lat,
-  //         lng: req.body.lng,
-  //       },
-  //       {
-  //         where: {
-  //           id: req.body.id,
-  //         },
-  //       }
-  //     );
-
-  //     res.send(response);
-  //   } catch (err) {
-  //     res.status(500).send(err.message);
-  //   }
-  // },
 };
