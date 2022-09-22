@@ -34,4 +34,7 @@ app.use('/contactUs', require('./ContactUs'))
 //app use feedback router
 app.use('/feedback', require('./Feedback'))
 
+//app use about us router
+app.use('/aboutUs', require('./AboutUs'))
+
 module.exports = app;
