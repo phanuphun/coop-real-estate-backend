@@ -52,9 +52,9 @@ module.exports = {
         response = await Users.create({
           userId: req.body.userId,
           displayName: req.body.displayName,
-          fname: null,
-          lname: null,
-          pictureUrl: null,
+          fname: "",
+          lname: "",
+          pictureUrl: "",
           packageId: req.body.packageId,
           roleId: req.body.roleId,
           subscriptionPeriodId: req.body.subscriptionPeriodId,
