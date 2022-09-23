@@ -322,8 +322,9 @@ module.exports.addMoneyTransfer = (req,res) => {
                         '${packagePeriod}',
                         '${packagePrice}',
                         '${image}',
-                        '${dateTransfer}'),
-                        0;`
+                        '${dateTransfer}',
+                        0);
+        `        
         dbConn.query(sql,(err,result)=>{
             if(err)err_service.errorNotification(err,'add money transfer')
             dbConn.query(sqlLineNotify,(err,result)=>{

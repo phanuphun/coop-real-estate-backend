@@ -361,4 +361,22 @@ route.get('/admin/getAboutUs',auth.requiredToken,other_ct.getAboutUs)
 route.put('/admin/updateAboutUs',auth.requiredToken,other_ct.updateAboutUs)
 
 
+//***************************************************************************** */
+// Promotions
+//***************************************************************************** */
+//add New Promotion
+route.post('/admin/addNewPromotion',auth.requiredToken,other_ct.addNewPromotion)
+
+//get all promotion
+route.get('/admin/getAllPromotion',auth.requiredToken,other_ct.getAllpromotion)
+
+//update promotion 
+route.put('/admin/updatePromotion',auth.requiredToken,other_ct.updatePromotion)
+
+//delete promotion 
+route.delete('/admin/deletePromotion/:id',auth.requiredToken,other_ct.deletePromotion)
+
+//chanfe status promotion
+route.put('/admin/changeStatusPromotion',auth.requiredToken,other_ct.changStatusPromotion)
+
 module.exports = route ;

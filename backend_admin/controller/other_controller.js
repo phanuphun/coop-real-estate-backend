@@ -2,6 +2,8 @@ const dbConn = require('../database')
 const err_service = require('./../../service/err_service')
 const lineN = require('line-notify-nodejs')('1ocSpbTTTf6JQIcUcJNDtqqsFfeWFzvbXPXupQhd6JU');
 const nodemailer = require('nodemailer');
+const e = require('express');
+const { truncate } = require('fs');
 
 //***************************************************************************** */
 // Address Data
@@ -169,7 +171,6 @@ module.exports.searchContactUs = (req,res) => {
     })
 
 }
-
 // get all conctact us 
 module.exports.getAllContactUs = (req,res) => {
     sql =`
@@ -188,7 +189,6 @@ module.exports.getAllContactUs = (req,res) => {
         })
     })
 }
-
 //delte contact uus 
 module.exports.deleteContactUs = (req,res) => {
     sql =  `
@@ -204,7 +204,6 @@ module.exports.deleteContactUs = (req,res) => {
         })
     })
 }
-
 // reply contact 
 module.exports.replyContactUs = (req,res)=> {
 
@@ -407,7 +406,6 @@ module.exports.getAboutUs = (req,res) => {
         })
     })
 }
-
 // update about us 
 module.exports.updateAboutUs =(req,res)=>{
     sql =  ` 
@@ -425,4 +423,134 @@ module.exports.updateAboutUs =(req,res)=>{
             msg: 'บันทึกเรียบร้อยแล้ว'
         })
     })
+}
+
+
+//***************************************************************************** */
+// about us 
+//***************************************************************************** */
+// get all promotion 
+module.exports.getAllpromotion = (req,res)=> {
+    sqlGetAll =    `
+        SELEcT 
+            *
+        FROM promotions
+        ORDER BY id DESC
+    `
+
+    dbConn.query(sqlGetAll,(err,result)=>{
+        if(err)err_service.errorNotification(err,'get all promotio n')
+        res.send({
+            status:true,
+            data:result
+        })
+    })
+}
+
+//insert promotion 
+module.exports.addNewPromotion = (req,res)=>{ 
+    sqlInsert = `
+        INSERT INTO promotions(
+                    title,
+                    detail,
+                    dateStart,
+                    dateEnd,
+                    displayStatus
+                )
+                VALUES(
+                    '${req.body.title}',
+                    '${req.body.detail}',
+                    '${req.body.dateStart}',
+                    '${req.body.dateEnd}',
+                    0
+                )
+    `
+
+    dbConn.query(sqlInsert,(err,result)=>{
+        if(err)err_service.errorNotification(err,'add new promotion ')
+        res.send({
+            status:true ,
+            msg:'เพิ่มโปรโมชั่นเรียบร้อย'
+        })
+    })
+
+}
+
+// delete promotion
+module.exports.deletePromotion = (req,res) => {
+    sqlDelete = `
+        DELETE FROM promotions WHERE id = ${req.params.id}
+    `
+    dbConn.query(sqlDelete,(err,result)=>{
+        if(err)err_service.errorNotification(err,'deletepromotion ')
+        res.send({
+            status:true,
+            msg: 'ลบโปรโมชั่นเรียบร้อยแล้ส'
+        })
+    })
+}
+
+// update promotion 
+module.exports.updatePromotion = (req,res) => {
+    sqlUpdate = `
+        UPDATE promotions 
+        SET title = '${req.body.title}',
+            detail = '${req.body.detail}',
+            dateStart = '${req.body.dateStart}',
+            dateEnd = '${req.body.dateEnd}'
+        WHERE id = ${req.body.id}
+
+    `
+    dbConn.query(sqlUpdate,(err,result)=>{
+        if(err)err_service.errorNotification(err,'update promotion ')
+        res.send({
+            status:true,
+            msg:'บันทึกข้อมูลโปรโมชั่นเรียบร้อยแล้ว'
+        })
+    })
+}
+
+// chang status promotion 
+module.exports.changStatusPromotion = (req,res) =>{ 
+
+
+
+    sqlCheckStatus = `
+        SELECT 
+            displayStatus 
+        FROM promotions
+        WHERE id = ${req.body.id} 
+    `
+
+
+    dbConn.query(sqlCheckStatus,(err,result)=>{
+        if(err)err_service.errorNotification(err,'change promotion display status => check display stats')
+        let displayStatus = result[0].displayStatus
+        if(displayStatus === 1 ){
+            displayStatus = 0
+        }else{
+            displayStatus = 1
+        }
+
+        sqlChange = `
+            UPDATE promotions 
+            SET displayStatus = ${displayStatus}
+            WHERE id = ${req.body.id}
+        `
+        dbConn.query(sqlChange,(err,result)=>{
+            if(err)err_service.errorNotification(err,'change promotion display status')
+            if(displayStatus === 1){
+                res.send({
+                    status:true,
+                    msg:'เปิดใช้งานโปรโมลชั่นแล้ว'
+                })
+            }else{
+                res.send({
+                    status:true,
+                    msg:'ปิดใช้งานโปรโมลชั่นแล้ว'
+                })
+            }
+        })
+    })
+
 }
