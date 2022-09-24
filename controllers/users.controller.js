@@ -206,17 +206,25 @@ module.exports = {
         where: {
           id: req.params.id,
         },
-        attributes: ["id", "displayName", "fname", "lname", "pictureUrl", 'displayStatus'],
+        attributes: ["id", "displayName", "fname", "lname", "pictureUrl", 'displayStatus','packageId', 'packageExpire'],
         include: [
           {
             model: UserAccountDetails,
             attributes: ["email", "phone", "organization"],
           },
+          {
+            model: UserSubProp,
+            attributes: ['id']
+          }
         ],
       });
 
-      if (response.displayStatus == 0 || response.displayStatus == false) {
-        return res.send({ status: 2 }) // status 2 is for user got banned and cant watch profile
+      let dateNow = new Date()
+      if (response.displayStatus == 0 || 
+        response.displayStatus == false || 
+        (response.packageId != 1 && dateNow >= response.packageExpire) || 
+        response.user_sub_props.length == 0) {
+        return res.send({ status: 2 , message: 'ALERT.NO_USER_EXIST' }) // status 2 is for user got banned or user package expired(cant watch profile) 
       }
 
       let data = {};
@@ -239,7 +247,7 @@ module.exports = {
         },
       });
 
-      res.send({ data: data, count: count });
+      res.send({ data: data, count: count ,ddd: response});
     } catch (err) {
       res.status(500).send(err.message);
     }
@@ -279,6 +287,10 @@ module.exports = {
             model: UserAccountDetails,
             attributes: ["email", "phone", "organization"],
           },
+          {
+            model: UserSubProp,
+            attributes: ['id']
+          }
         ],
         order: [['packageId', 'desc']]
       });
@@ -297,6 +309,7 @@ module.exports = {
         data.email = response[i].user_account_detail["email"];
         data.phone = response[i].user_account_detail["phone"];
         data.organization = response[i].user_account_detail["organization"];
+        data.count = response[i].user_sub_props.length
         agents.push(data);
       }
 

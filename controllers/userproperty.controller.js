@@ -28,6 +28,7 @@ const {
 } = require("../config/config");
 const fs = require("fs");
 const path = require("path");
+const { checkCompare } = require("./users.controller");
 
 const config = {
   channelAccessToken: CHANNEL_ACCESS_TOKEN,
@@ -164,14 +165,205 @@ const createFlexMessage = (prop) => {
 const submitProp = async (req, res) => {
   try {
     const userId = res.locals.userId;
+    let response = await UserSubProp.create({
+      userId: userId,
+      title: req.body.title,
+      description: req.body.description,
+      propFor: req.body.propFor,
+      priceSale: req.body.priceSale,
+      priceRent: req.body.priceRent,
+      propType: req.body.propType,
+      lat: req.body.lat,
+      lng: req.body.lng,
+      houseNo: req.body.houseNo,
+      addressId: req.body.addressId,
+    });
+
+    let propertyId = await UserSubProp.findOne({
+      attributes: ["id"],
+      order: [["id", "desc"]],
+    });
+
+    response = await UserSubPropAddi.create({
+      bedrooms: req.body.bedrooms,
+      bathrooms: req.body.bathrooms,
+      garages: req.body.garages,
+      area: req.body.area,
+      floor: req.body.floor,
+      yearBuilt: req.body.yearBuilt,
+      propertyId: propertyId.id,
+    });
+
+    const addiId = await UserSubPropAddi.findOne({
+      order: [["id", "DESC"]],
+      attributes: ["id"],
+    });
+
+    let feat_id = [];
+    if (req.body.features_id) {
+      if (req.body.features_id.length > 1) {
+        for (let i = 0; i < req.body.features_id.length; i++) {
+          feat_id.push({
+            additionalId: JSON.stringify(addiId.id),
+            featuresId: req.body.features_id[i],
+          });
+        }
+      } else {
+        feat_id.push({
+          additionalId: JSON.stringify(addiId.id),
+          featuresId: req.body.features_id,
+        });
+      }
+    } else {
+      feat_id.push({
+        additionalId: JSON.stringify(addiId.id),
+        featuresId: null,
+      });
+    }
+    response = await UserSubPropAddiFeat.bulkCreate(feat_id);
+
+    let gallery = [];
+
+    if (req.body.gallery) {
+      for (let i = 0; i < req.body.gallery.length; i++) {
+        gallery.push({
+          path: req.body.gallery[i],
+          propertyId: propertyId.id,
+        });
+      }
+    }
+
+    let insertGallery = await UserSubPropGallery.bulkCreate(gallery);
+
+    const type = await PropertyType.findOne({
+      where: {
+        id: req.body.propType,
+      },
+      attributes: ["name_th"],
+    });
+
+    const purpose = await PropertyPurpose.findOne({
+      where: {
+        id: req.body.propFor,
+      },
+      attributes: ["name_th"],
+    });
+
+    let address = await SubDistrict.findOne({
+      where: {
+        id: req.body.addressId,
+      },
+      attributes: ["name_th", "zip_code"],
+      include: [
+        {
+          model: District,
+          attributes: ["name_th"],
+          include: [
+            {
+              model: Provinces,
+              attributes: ["name_th"],
+            },
+          ],
+        },
+      ],
+    });
+    let zipCode = address.zip_code;
+    let subDist = address.name_th;
+    let dist = address.district.name_th;
+    let prov = address.district.province.name_th;
+    let prop = {};
+    prop.title = req.body.title;
+    prop.type = type.name_th;
+    prop.purpose = purpose.name_th;
+    prop.priceSale = Number(req.body.priceSale);
+    prop.priceRent = Number(req.body.priceRent);
+    if (req.body.propFor == 1) {
+      prop.price = `${new Intl.NumberFormat("th-TH", {
+        style: "currency",
+        currency: "THB",
+      }).format(prop.priceSale)}`;
+    } else if (req.body.propFor == 2) {
+      prop.price = `${new Intl.NumberFormat("th-TH", {
+        style: "currency",
+        currency: "THB",
+      }).format(prop.priceRent)}/เดือน`;
+    } else if (req.body.propFor == 3) {
+      prop.price = `฿ ${new Intl.NumberFormat("th-TH", {
+        style: "currency",
+        currency: "THB",
+      }).format(prop.priceSale)}, ฿ ${new Intl.NumberFormat("th-TH", {
+        style: "currency",
+        currency: "THB",
+      }).format(prop.priceRent)}/เดือน`;
+    }
+    prop.address = `${req.body.houseNo}, ${subDist}, ${dist}, ${prov}, ${zipCode}`;
+    prop.link = `https://127.0.0.1:4200/properties/${propertyId.id}`;
+    prop.gallery = `${NGROK}/images/properties/${req.body.gallery[0]}`;
+    const flex = createFlexMessage(prop);
+    const multiCast = {
+      type: "flex",
+      altText: "new property submitted",
+      contents: flex,
+    };
+
+    let user = await Users.findAll({
+      attributes: ["userId"],
+      where: {
+        id: { [Op.ne]: userId },
+      },
+      include: [
+        {
+          model: UserRequirement,
+          attributes: ["id"],
+          where: {
+            purposeId: req.body.propFor,
+            typeId: req.body.propType,
+            subDistrictId: req.body.addressId,
+          },
+        },
+      ],
+    });
+    let multiUser = [];
+    user.forEach((u) => {
+      multiUser.push(u.userId);
+    });
+
+    if (multiUser.length > 0) {
+      client.multicast(multiUser, multiCast);
+      //  console.log('notified success');
+    }
+
+    return res.send({
+      status: 1,
+      message: `Submit property "${req.body.title}" successfully`,
+    });
+  } catch (err) {
+    res.status(500).send(err.message);
+  }
+};
+
+const checkUserInfoBeforeSubmit = async (req, res) => {
+  try {
+    const userId = res.locals.userId;
 
     const userDetail = await UserAccountDetails.findOne({
       where: {
         userId: userId,
       },
       attributes: ["email", "phone"],
-      include: [{ model: Users, attributes: ["fname", "lname"] }],
+      include: [
+        {
+          model: Users,
+          attributes: ["fname", "lname", "packageId", "packageExpire"],
+          include: [{
+            model: Package,
+            attributes: ["propertyLimit"],
+          }, ]
+        }
+        
+      ],
     });
+
     if (
       userDetail.email == null ||
       userDetail.email == "" ||
@@ -182,271 +374,39 @@ const submitProp = async (req, res) => {
       userDetail.user.lname == null ||
       userDetail.user.lname == ""
     ) {
-      if (req.body.gallery) {
-        req.body.gallery.forEach((gallery) => {
-          if (
-            fs.existsSync(path.resolve("public/images/properties/" + gallery))
-          ) {
-            fs.unlinkSync(path.resolve("public/images/properties/" + gallery));
-            console.log('delete', path.resolve("public/images/properties/" + gallery));
-          }
-        });
-      }
-      return res.send({
-        status: 4,
-        message:
-          "ข้อมูลผู้ใช้งานของคุณยังไม่เพียงพอ กรุณาเพิ่ม ชื่อสกุล, อีเมลและเบอร์โทร",
-      });
+      return res.send({ status: 2, message: "ALERT.INFO_NOT_ENOUGH" });//status 2 if for info not enough redirect to profile
     }
 
+    let packageId = userDetail.user.packageId;
+    let packageExpire = userDetail.user.packageExpire;
     const dateNow = new Date();
+    if (dateNow >= packageExpire && packageId != 1) {
+      return res.send({
+        status: 3,
+        message: "ALERT.SUBMIT_PACKAGE_EXPIRED",
+      }); // status 3 is for package expired, still can sale but not display.
+    }
 
-    let userStatus = await Users.findOne({
-      where: {
-        id: userId,
-      },
-      attributes: ["packageId", "packageExpire"],
-      include: [
-        {
-          model: Package,
-          attributes: ["propertyLimit"],
-        },
-      ],
-    });
-
-    let packageId = userStatus.packageId;
-
-    let packageExpire = userStatus.packageExpire;
-
-    let propertyLimit = userStatus.package.propertyLimit;
-
+    let propertyLimit = userDetail.user.package.propertyLimit;
     let propertyAmount = await UserSubProp.count({
       where: {
         userId: userId,
       },
     });
 
-    if (dateNow >= packageExpire && packageId != 1) {
-      let changePackage = await Users.update(
-        {
-          packageId: 1,
-        },
-        {
-          where: {
-            id: userId,
-          },
-        }
-      );
-
-      if (req.body.gallery) {
-        req.body.gallery.forEach((gallery) => {
-          if (
-            fs.existsSync(path.resolve("public/images/properties/" + gallery))
-          ) {
-            fs.unlinkSync(path.resolve("public/images/properties/" + gallery));
-          }
-        });
-      }
-
-      return res.send({
-        status: 2,
-        message:
-          "Your package has expired. Your package now is changed to FREE, Please try again",
-      }); // status 2 is for package expired and change to FREE package
-    }
-
     if (propertyAmount >= propertyLimit) {
-      if (req.body.gallery) {
-        req.body.gallery.forEach((gallery) => {
-          if (
-            fs.existsSync(path.resolve("public/images/properties/" + gallery))
-          ) {
-            fs.unlinkSync(path.resolve("public/images/properties/" + gallery));
-          }
-        });
-      }
       return res.send({
-        status: 3,
-        message: "Your property listing has reached limit.",
-      }); // status 3 is for fail to create post because property list has reach limit
-    } else {
-      let response = await UserSubProp.create({
-        userId: userId,
-        title: req.body.title,
-        description: req.body.description,
-        propFor: req.body.propFor,
-        priceSale: req.body.priceSale,
-        priceRent: req.body.priceRent,
-        propType: req.body.propType,
-        lat: req.body.lat,
-        lng: req.body.lng,
-        houseNo: req.body.houseNo,
-        addressId: req.body.addressId,
-      });
-
-      let propertyId = await UserSubProp.findOne({
-        attributes: ["id"],
-        order: [["id", "desc"]],
-      });
-
-      response = await UserSubPropAddi.create({
-        bedrooms: req.body.bedrooms,
-        bathrooms: req.body.bathrooms,
-        garages: req.body.garages,
-        area: req.body.area,
-        floor: req.body.floor,
-        yearBuilt: req.body.yearBuilt,
-        propertyId: propertyId.id,
-      });
-
-      const addiId = await UserSubPropAddi.findOne({
-        order: [["id", "DESC"]],
-        attributes: ["id"],
-      });
-
-      let feat_id = [];
-      if (req.body.features_id) {
-        if (req.body.features_id.length > 1) {
-          for (let i = 0; i < req.body.features_id.length; i++) {
-            feat_id.push({
-              additionalId: JSON.stringify(addiId.id),
-              featuresId: req.body.features_id[i],
-            });
-          }
-        } else {
-          feat_id.push({
-            additionalId: JSON.stringify(addiId.id),
-            featuresId: req.body.features_id,
-          });
-        }
-      } else {
-        feat_id.push({
-          additionalId: JSON.stringify(addiId.id),
-          featuresId: null,
-        });
-      }
-      response = await UserSubPropAddiFeat.bulkCreate(feat_id);
-
-      let gallery = [];
-
-      if (req.body.gallery) {
-        for (let i = 0; i < req.body.gallery.length; i++) {
-          gallery.push({
-            path: req.body.gallery[i],
-            propertyId: propertyId.id,
-          });
-        }
-      }
-
-      let insertGallery = await UserSubPropGallery.bulkCreate(gallery);
-
-      const type = await PropertyType.findOne({
-        where: {
-          id: req.body.propType,
-        },
-        attributes: ["name_th"],
-      });
-
-      const purpose = await PropertyPurpose.findOne({
-        where: {
-          id: req.body.propFor,
-        },
-        attributes: ["name_th"],
-      });
-
-      let address = await SubDistrict.findOne({
-        where: {
-          id: req.body.addressId,
-        },
-        attributes: ["name_th", "zip_code"],
-        include: [
-          {
-            model: District,
-            attributes: ["name_th"],
-            include: [
-              {
-                model: Provinces,
-                attributes: ["name_th"],
-              },
-            ],
-          },
-        ],
-      });
-      let zipCode = address.zip_code;
-      let subDist = address.name_th;
-      let dist = address.district.name_th;
-      let prov = address.district.province.name_th;
-      let prop = {};
-      prop.title = req.body.title;
-      prop.type = type.name_th;
-      prop.purpose = purpose.name_th;
-      prop.priceSale = Number(req.body.priceSale);
-      prop.priceRent = Number(req.body.priceRent);
-      if (req.body.propFor == 1) {
-        prop.price = `${new Intl.NumberFormat("th-TH", {
-          style: "currency",
-          currency: "THB",
-        }).format(prop.priceSale)}`;
-      } else if (req.body.propFor == 2) {
-        prop.price = `${new Intl.NumberFormat("th-TH", {
-          style: "currency",
-          currency: "THB",
-        }).format(prop.priceRent)}/เดือน`;
-      } else if (req.body.propFor == 3) {
-        prop.price = `฿ ${new Intl.NumberFormat("th-TH", {
-          style: "currency",
-          currency: "THB",
-        }).format(prop.priceSale)}, ฿ ${new Intl.NumberFormat("th-TH", {
-          style: "currency",
-          currency: "THB",
-        }).format(prop.priceRent)}/เดือน`;
-      }
-      prop.address = `${req.body.houseNo}, ${subDist}, ${dist}, ${prov}, ${zipCode}`;
-      prop.link = `https://127.0.0.1:4200/properties/${propertyId.id}`;
-      prop.gallery = `${NGROK}/images/properties/${req.body.gallery[0]}`;
-      const flex = createFlexMessage(prop);
-      const multiCast = {
-        type: "flex",
-        altText: "new property submitted",
-        contents: flex,
-      };
-
-      let user = await Users.findAll({
-        attributes: ["userId"],
-        where: {
-          id: { [Op.ne]: userId },
-        },
-        include: [
-          {
-            model: UserRequirement,
-            attributes: ["id"],
-            where: {
-              purposeId: req.body.propFor,
-              typeId: req.body.propType,
-              subDistrictId: req.body.addressId,
-            },
-          },
-        ],
-      });
-      let multiUser = [];
-      user.forEach((u) => {
-        multiUser.push(u.userId);
-      });
-
-      if (multiUser.length > 0) {
-        client.multicast(multiUser, multiCast);
-        //  console.log('notified success');
-      }
-
-      return res.send({
-        status: 1,
-        message: `Submit property "${req.body.title}" successfully`,
-      });
+        status: 4,
+        message: "ALERT.PROPERTY_REACH_LIMIT",
+      }); // status 4 is alert list has reach limit
     }
+
+    return res.send({ status: 1 }); //status 1 is OK
   } catch (err) {
     res.status(500).send(err.message);
   }
 };
+
 
 const userRemoveProp = async (req, res) => {
   try {
@@ -523,7 +483,7 @@ const getUserProperties = async (req, res) => {
       } else if (order == "PriceRent(LowtoHigh)") {
         sort = "order by user_sub_props.priceRent asc";
         propFor = 2;
-      } else if (order == "PriceRent(HightoLow") {
+      } else if (order == "PriceRent(HightoLow)") {
         sort = "order by user_sub_props.priceRent desc";
         propFor = 2;
       }
@@ -1031,7 +991,7 @@ const getUserPropertiesHome = async (req, res) => {
       } else if (order == "PriceRent(LowtoHigh)") {
         sort = "order by user_sub_props.priceRent asc";
         propFor = 2;
-      } else if (order == "PriceRent(HightoLow") {
+      } else if (order == "PriceRent(HightoLow)") {
         sort = "order by user_sub_props.priceRent desc";
         propFor = 2;
       }
@@ -1278,7 +1238,7 @@ const getPropertiesbyAgent = async (req, res) => {
       } else if (order == "PriceRent(LowtoHigh)") {
         sort = "order by user_sub_props.priceRent asc";
         propFor = 2;
-      } else if (order == "PriceRent(HightoLow") {
+      } else if (order == "PriceRent(HightoLow)") {
         sort = "order by user_sub_props.priceRent desc";
         propFor = 2;
       }
@@ -1493,6 +1453,28 @@ const getPropertiesbyAgent = async (req, res) => {
     res.status(err.message);
   }
 };
+
+const checkUserOwnProperty = async(req, res) => {
+  try {
+    const userId = res.locals.userId
+    const propertyId = req.params.propertyId
+
+    const check = await UserSubProp.findOne({
+      where: {
+        id: propertyId,
+        userId: userId
+      }
+    })
+
+    if (check) {
+      return res.send({ status: 2 })// status 2 is for user is own property cannot report 
+    }
+    return res.send({ status: 1 })//status 1 is for user not owner property
+
+  } catch (err) {
+    res.status(500).send(err.message)
+  }
+}
 
 const getMyproperties = async (req, res) => {
   try {
@@ -1973,4 +1955,6 @@ module.exports = {
   getUserCompare: getUserCompare,
   removeFromCompareById: removeFromCompareById,
   clearAllCompare: clearAllCompare,
+  checkUserInfoBeforeSubmit: checkUserInfoBeforeSubmit,
+  checkUserOwnProperty: checkUserOwnProperty
 };
