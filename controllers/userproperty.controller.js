@@ -946,7 +946,7 @@ const getUserPropertyById = async (req, res) => {
       `
     );
     agent = agent[0][0];
-    if (agent.picture.length != null && agent.picture.length != "") {
+    if (agent.picture != null && agent.picture != "") {
       agent.picture = `${HOST}/images/avatar/${agent.picture}`;
     } else {
       agent.picture = `${HOST}/images/avatar/default.jpg`;

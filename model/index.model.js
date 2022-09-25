@@ -88,6 +88,9 @@ db.Feedback = require('./schema/Feedback/Feedback')(sequelize, Sequelize)
 // about us
 db.AboutUs = require('./schema/AboutUs/AboutUs')(sequelize, Sequelize)
 
+// promotions
+db.Promotions= require('./schema/Promotions/Promotions')(sequelize, Sequelize)
+
 //helpers realtion
 db.FaqCategory.hasMany(db.Faq, { foreignKey: 'category' })
 db.Faq.belongsTo(db.FaqCategory, { foreignKey: 'category' })

@@ -27,6 +27,7 @@ const {
   UserSubPropGallery,
   Sequelize,
   SubscriptionPeriod,
+  Promotions,
 } = require("../model/index.model");
 const jwt = require("jsonwebtoken");
 const fs = require("fs");
@@ -41,24 +42,45 @@ const config = {
 const client = new line.Client(config);
 module.exports = {
   login: async (req, res) => {
-    // console.log(req.body);
     try {
+      console.log(req.body);
       let existUser = await Users.findOne({
         where: { userId: req.body.userId },
       });
-
       let response;
+
+      let packageId = req.body.packageId
+      
+      let packageExpireDate = req.body.packageExpire
+
+      
       if (!existUser) {
+        let promotion = await Promotions.findOne({
+          where: {
+            code: 'debut' || 'DEBUT',
+            id: 1,
+            displayStatus: true || 1
+          }
+        })
+
+        if (promotion) {
+          let dateNow = new Date()
+          if (dateNow < new Date(promotion.dateEnd)) {
+            packageId = 4
+            packageExpireDate = promotion.dateEnd
+          }
+        }
+
         response = await Users.create({
           userId: req.body.userId,
           displayName: req.body.displayName,
           fname: "",
           lname: "",
           pictureUrl: "",
-          packageId: req.body.packageId,
+          packageId: packageId,
           roleId: req.body.roleId,
           subscriptionPeriodId: req.body.subscriptionPeriodId,
-          packageExpire: req.body.packageExpire,
+          packageExpire: packageExpireDate,
           displayStatus: 1
         });
 
