@@ -9,6 +9,7 @@ const multer = require('../services/multer/multer')
 //POST: submit property
 router.post('/submitProp', validator.verify, multer.uploadImages, multer.resizeImagesProperty, multer.getResult, controller.submitProp)
 
+router.get('/checkUserInfoBeforeSubmit', validator.verify, controller.checkUserInfoBeforeSubmit)
 
 router.post('/getUserProperties/:page/:perPage', controller.getUserProperties)
 
@@ -17,6 +18,8 @@ router.get('/getUserPropertyById/:id', controller.getUserPropertyById)
 router.post('/getUserPropertiesHome/:page/:perPage', controller.getUserPropertiesHome)
 
 router.post('/getUserPropertiesbyAgent/:page/:perPage/:id', controller.getPropertiesbyAgent)
+
+router.get('/checkUserOwnProperty/:propertyId', validator.verify, controller.checkUserOwnProperty)
 
 router.get('/getMyproperties', validator.verify, controller.getMyproperties)
 
