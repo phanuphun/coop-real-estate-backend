@@ -50,9 +50,14 @@ module.exports.signup = async (req, res) => {
 
 //sign-in  / login
 module.exports.signin = (req, res) => {
+    console.log(req.body);
     email = req.body.email;
     password = req.body.password;
-
+    expireToken = '10h'
+    rememberMe = req.body.rememberMe;
+    if(rememberMe === true){
+        expireToken = "30d"
+    }
     dbConn.query("SELECT * FROM admin WHERE adminEmail = ?",[email],async (err, result) => {
             if (err) err_service.errorNotification(err,'sign in => check password')
             if (result.length === 1) {
@@ -70,7 +75,7 @@ module.exports.signin = (req, res) => {
                     dbConn.query('SELECT * FROM admin WHERE adminEmail = ?',[email],(err,result)=>{
                         if(err) err_service.errorNotification(err,'Sign in => after chek password')
 
-                        const token = jwt.sign({ dataForCreateToken },"privatekey",{expiresIn:"10h"});
+                        const token = jwt.sign({ dataForCreateToken },"privatekey",{expiresIn:expireToken});
                         res.send({
                             status: true,
                             msg : "เข้าสู่ระบบสำเร็จ",
