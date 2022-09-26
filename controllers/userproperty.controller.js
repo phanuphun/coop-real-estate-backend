@@ -440,7 +440,7 @@ const userRemoveProp = async (req, res) => {
       },
     });
 
-    res.send({ message: "remove property successfully" });
+    res.send({ message: "ALERT.REMOVE_PROPERTY_SUCCESS" });
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -1450,7 +1450,7 @@ const getPropertiesbyAgent = async (req, res) => {
 
     res.send({ count: count[0], data: response });
   } catch (err) {
-    res.status(err.message);
+    res.status(500).send(err.message);
   }
 };
 
@@ -1780,7 +1780,7 @@ const updateUserProp = async (req, res) => {
       const insertGallery = await UserSubPropGallery.bulkCreate(gallery);
     }
 
-    res.send({ status: 1, message: "updated property successfully" }); // status 1 is for updated success
+    res.send({ status: 1, message: "ALERT.UPDATE_PROPERTY_SUCCESS" }); // status 1 is for updated success
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -1797,7 +1797,7 @@ const removeFromFavorite = async (req, res) => {
       },
     });
 
-    res.send({ status: 1, message: "deleted from favorite list successfully" });
+    res.send({ status: 1, message: "ALERT.DELETE_FROM_FAVORITE" });
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -1918,7 +1918,7 @@ const removeFromCompareById = async (req, res) => {
         propertyId: req.params.propertyId,
       },
     });
-    res.send({ status: 1, message: "deleted from compare list successfully" });
+    res.send({ status: 1, message: "ALERT.DELETE_FROM_COMPARE" });
   } catch (err) {
     res.status(500).send(err.message);
   }
@@ -1934,7 +1934,7 @@ const clearAllCompare = async (req, res) => {
       },
     });
 
-    res.send({ status: 1, message: "clear all compare list successfully" });
+    res.send({ status: 1, message: "ALERT.CLEAR_FROM_COMPARE" });
   } catch (err) {
     res.status(500).send(err.message);
   }

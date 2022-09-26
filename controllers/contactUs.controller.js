@@ -15,7 +15,7 @@ module.exports = {
                 replyStatus: 0 || false
             })
 
-            return res.send({ status: 1, message: 'ส่งข้อความสำเร็จ Your contact has been submiited.' })
+            return res.send({ status: 1, message: 'ALERT.SUBMITTED_CONTACT' })
 
         } catch (err) {
             return res.status(500).send(err.message)

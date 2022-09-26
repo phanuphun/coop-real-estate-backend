@@ -13,7 +13,7 @@ module.exports = {
                 message: message
             })
 
-            return res.send({ status: 1, message: 'ส่งความคิดเห็นสำเร็จ Your feedback has been submitted.' })
+            return res.send({ status: 1, message: 'ALERT.SUBMITTED_FEEDBACK' })
 
         } catch (err) {
             res.status(500).send(err.message)
