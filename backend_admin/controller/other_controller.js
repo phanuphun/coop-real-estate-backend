@@ -435,7 +435,7 @@ module.exports.getAllpromotion = (req,res)=> {
         SELEcT 
             *
         FROM promotions
-        ORDER BY id DESC
+        ORDER BY id ASC
     `
 
     dbConn.query(sqlGetAll,(err,result)=>{
@@ -451,6 +451,7 @@ module.exports.getAllpromotion = (req,res)=> {
 module.exports.addNewPromotion = (req,res)=>{ 
     sqlInsert = `
         INSERT INTO promotions(
+                    code,
                     title,
                     detail,
                     dateStart,
@@ -458,6 +459,7 @@ module.exports.addNewPromotion = (req,res)=>{
                     displayStatus
                 )
                 VALUES(
+                    '${req.body.code}',
                     '${req.body.title}',
                     '${req.body.detail}',
                     '${req.body.dateStart}',
@@ -494,7 +496,8 @@ module.exports.deletePromotion = (req,res) => {
 module.exports.updatePromotion = (req,res) => {
     sqlUpdate = `
         UPDATE promotions 
-        SET title = '${req.body.title}',
+        SET code = '${req.body.code}',
+            title = '${req.body.title}',
             detail = '${req.body.detail}',
             dateStart = '${req.body.dateStart}',
             dateEnd = '${req.body.dateEnd}'
