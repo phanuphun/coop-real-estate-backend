@@ -1655,7 +1655,7 @@ const getEditPropertyById = async (req, res) => {
     data.yearBuilt = property.user_sub_prop_additional.yearBuilt;
     data.floor = property.user_sub_prop_additional.floor;
     data.features = features;
-    data.gallery = gallery;
+    data.gallery = gallery.reverse();
     res.send({ data: data });
   } catch (err) {
     res.status(500).send(err.message);
@@ -1666,7 +1666,7 @@ const updateUserProp = async (req, res) => {
   try {
     const userId = res.locals.userId;
     const propertyId = req.params.propertyId;
-    // console.log(req.body);
+    console.log(req.body);
     if (req.body.delImage) {
       if (req.body.delImage.legnth > 1) {
         req.body.delImage.forEach((del) => {
@@ -1898,6 +1898,7 @@ const getUserCompare = async (req, res) => {
       temp.purpose_nameen = compare.user_sub_prop.property_purpose.name_en;
       temp.type_nameth = compare.user_sub_prop.property_type.name_th;
       temp.type_nameen = compare.user_sub_prop.property_type.name_en;
+      compare.user_sub_prop.user_sub_prop_galleries = compare.user_sub_prop.user_sub_prop_galleries.reverse();
       temp.gallery = `${HOST}/images/properties/${compare.user_sub_prop.user_sub_prop_galleries[0].path}`;
       data.push(temp);
     });
