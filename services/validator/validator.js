@@ -10,7 +10,7 @@ module.exports = {
         if (token) {
             jwt.verify(token, SECRET, async(err, tokendata) => {
                 if (err) {
-                    return res.send({ status: 400, message: 'กรุณาเข้าสู่ระบบ Please Sign in.' })
+                    return res.send({ status: 400, message: 'ALERT.SIGN_IN' })
                 } else {
                     const response = await Users.findOne({
                     where: {
@@ -19,17 +19,17 @@ module.exports = {
                     })
                     if (response) {
                         if (response.displayStatus == false || response.displayStatus == 0){
-                            return res.send({ status: 400, message: 'เกิดข้อผิดพลาด กรุณาเข้าสู่ระบบอีกครั้ง Something Went Wrong, Please Sign in.' })
+                            return res.send({ status: 400, message: 'ALERT.ERR_SIGN_IN' })
                         }
                         res.locals.userId = response.id
                         next();
                     } else {
-                        return res.send({ status: 400, message: 'ไม่มีผู้ใช้งานนี้ในระบบ No User exists.' })
+                        return res.send({ status: 400, message: 'ALERT.NO_USER_EXIST' })
                     }       
                 }
             })  
         } else {
-            return res.send({ status: 400, message: 'กรุณาเข้าสู่ระบบ Please Sign in.' })
+            return res.send({ status: 400, message: 'ALERT.SIGN_IN' })
         }
         
     }

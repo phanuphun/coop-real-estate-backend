@@ -54,9 +54,9 @@ module.exports = {
                             faqId: faqId
                         }
                     })
-                    res.send({ status: 1, message: 'ความเห็นของคุณถูกเพิ่มแล้ว' })
+                    res.send({ status: 1, message: 'ALERT.ADDED_FEEDBACK_HELPFUL' })
                 }else {
-                  res.send({ status: 2 , message: 'ความเห็นของคุณมีอยู่แล้ว'})  
+                  res.send({ status: 2 , message: 'ALERT.EXIST_FEEDBACK_HELPFUL'})  
                 }
             } else {
                 const setReview = await FaqHelpful.create({
@@ -64,7 +64,7 @@ module.exports = {
                     faqId: faqId,
                     helpful: review
                 })
-                res.send({ status: 1, message: 'ความเห็นของคุณถูกเพิ่มแล้ว' })
+                res.send({ status: 1, message: 'ALERT.ADDED_FEEDBACK_HELPFUL' })
             }
 
         } catch (err) {

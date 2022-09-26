@@ -170,7 +170,7 @@ module.exports = {
           },
         });
         return res.send({
-          message: "deleted from favorite list successfully",
+          message: "ALERT.DELETE_FROM_FAVORITE",
           status: 2,
         }); // status 2 is for delete from favorite
       } else {
@@ -180,7 +180,7 @@ module.exports = {
         });
       }
 
-      res.send({ message: `add to favorite list successfully`, status: 1 }); // status 1 is for add to favorite
+      res.send({ message: `ALERT.ADD_TO_FAVORITE`, status: 1 }); // status 1 is for add to favorite
     } catch (err) {
       res.status(500).send(err.message);
     }
@@ -205,7 +205,7 @@ module.exports = {
           },
         });
         return res.status(200).send({
-          message: "deleted from compare list successfully",
+          message: "ALERT.DELETE_FROM_COMPARE",
           status: 2,
         }); // status 2 is for remove from compare list
       } else {
@@ -217,7 +217,7 @@ module.exports = {
 
       res
         .status(201)
-        .send({ message: `add to compare list successfully`, status: 1 }); // status 1 is for add to compare list
+        .send({ message: `ALERT.ADD_TO_COMPARE`, status: 1 }); // status 1 is for add to compare list
     } catch (err) {
       res.status(500).send(err.message);
     }
@@ -456,7 +456,7 @@ module.exports = {
       }
 
       // test response
-      res.send({ message: "update user profile successfully" });
+      res.send({ message: "ALERT.UPDATED_PROFILE" });
     } catch (err) {
       res.status(500).send(err.message);
     }
@@ -497,7 +497,7 @@ module.exports = {
           },
         }
       );
-      res.send({ message: "updated avatar successfully" });
+      res.send({ message: "ALERT.UPDATED_AVATAR" });
     } catch (err) {
       res.status(500).send(err.message);
     }
@@ -581,8 +581,8 @@ module.exports = {
 
       if (existReport) {
         return res.send({
-          status: 1,
-          message: "การายงานอสังหาริมทรัพย์นี้ของคุณถูกบันทุกแล้ว",
+          status: 2,
+          message: "ALERT.EXIST_REPORTED_PROPERTY",
         }); //status 2 is for report already exists
       } else {
         const addReport = await UserReportProperty.create({
@@ -594,7 +594,7 @@ module.exports = {
 
         res.send({
           status: 1,
-          message: "การายงานอสังหาริมทรัพย์นี้ของคุณถูกบันทุกแล้ว",
+          message: "ALERT.REPORTED_PROPERTY",
         }); // status 1 is for submitted report successfully
       }
     } catch (err) {
@@ -638,7 +638,7 @@ module.exports = {
 
       //  console.log(existPost);
       if (existPost) {
-        return res.send({ status: 2, message: "คุณมีความต้องการนี้อยู่แล้ว" });
+        return res.send({ status: 2, message: "ALERT.EXIST_REQUIREMENT" });
       } else {
         const createPost = await UserRequirement.create({
           userId: userId,
@@ -647,7 +647,7 @@ module.exports = {
           subDistrictId: subDistrictId,
         });
 
-        return res.send({ status: 1, message: "สร้างความต้องการสำเร็จ" });
+        return res.send({ status: 1, message: "ALERT.CREATED_REQUIREMENT" });
       }
     } catch (err) {
       res.status(500).send(err.message);
@@ -709,7 +709,7 @@ module.exports = {
         },
       });
 
-      return res.send({ status: 1, message: "ลบโพสต์ความต้องการสำเร็จ" });
+      return res.send({ status: 1, message: "ALERT.DELETED_REQUIREMENT" });
     } catch (err) {
       res.status(500).send(err.message);
     }
@@ -733,7 +733,7 @@ module.exports = {
       });
 
       if (existPost) {
-        return res.send({ status: 2, message: "คุณมีความต้องการนี้อยู่แล้ว" });
+        return res.send({ status: 2, message: "ALERT.EXIST_REQUIREMENT" });
       } else {
         const editPost = await UserRequirement.update(
           {
@@ -749,7 +749,7 @@ module.exports = {
           }
         );
 
-        return res.send({ status: 1, message: "แก้ไขความต้องการสำเร็จ" });
+        return res.send({ status: 1, message: "ALERT.EDITED_REQUIREMENT" });
       }
     } catch (err) {
       res.status(500).send(err.message);
@@ -766,7 +766,7 @@ module.exports = {
         },
       });
 
-      return res.send({ status: 1, message: "ล้างโพสต์ทั้งหมดสำเร็จ" });
+      return res.send({ status: 1, message: "ALERT.CLEAR_REQUIREMENT" });
     } catch (err) {
       res.status(500).send(err.message);
     }
@@ -840,7 +840,7 @@ module.exports = {
       if (existReport) {
         return res.send({
           status: 2,
-          message: "คุณได้รายงานผู้ใช้รายนี้เรียบร้อยแล้ว",
+          message: "ALERT.EXIST_REPORTED_USER",
         });
       } else {
         const reportUser = await UserReportUser.create({
@@ -851,7 +851,7 @@ module.exports = {
         });
         return res.send({
           status: 1,
-          message: "คุณได้รายงานผู้ใช้รายนี้เรียบร้อยแล้ว",
+          message: "ALERT.REPORTED_USER",
         });
       }
     } catch (err) {
@@ -1015,7 +1015,7 @@ ${ADMIN_PATH}/realEstate/money-transfer/${message.id}`,
         }
       })
 
-      return res.send({ status: 1, message: 'คุณได้ทำการยกเลิกแพ็คเกจของคุณสำเร็จแล้ว' });
+      return res.send({ status: 1, message: 'ALERT.CANCELED_PACKAGE' });
     } catch (err) {
       res.status(500).send(err.message);
     }
