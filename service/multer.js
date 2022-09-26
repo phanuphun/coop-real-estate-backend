@@ -101,10 +101,15 @@ const getResult = async (req, res, next) => {
 };
 
 function deleteImage(imageName){
+    // if(fs.existsSync(path.resolve('public/images/'+imageName))){
+    //     fs.unlink(path.resolve('public/images/'+imageName),(err)=>{
+    //         if(err) err_service.errorNotification(err,'delete image')
+    //     })
+    // }
+
     if(fs.existsSync(path.resolve('public/images/'+imageName))){
-        fs.unlink(path.resolve('public/images/'+imageName),(err)=>{
-            if(err) err_service.errorNotification(err,'delete image')
-        })
+        fs.unlinkSync(path.resolve('public/images/'+imageName))
+        console.log('delete => ',path.resolve('public/images/'+imageName));
     }
 
 }
