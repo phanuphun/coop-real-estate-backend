@@ -374,6 +374,7 @@ module.exports.addNewMember = (req,res) => {
 }
 //update user
 module.exports.updateUser = (req,res) => {
+    console.log(req.body);
     id = req.body.id
     tokenLindID = req.body.tokenLindID
     userName = req.body.userName
@@ -384,6 +385,7 @@ module.exports.updateUser = (req,res) => {
     phone = req.body.phone
     organization = req.body.organization
     image = req.body.gallery[0]
+    packageExpire = req.body.packageExpire
 
     if(fname === null){
         fname = ''
@@ -432,6 +434,7 @@ module.exports.updateUser = (req,res) => {
                 fname = '${fname}' ,
                 lname = '${lname}' ,
                 packageId = '${package_id}' ,
+                packageExpire = '${packageExpire}',
                 updatedAt = '${date}'
             WHERE id = '${id}'
             `
