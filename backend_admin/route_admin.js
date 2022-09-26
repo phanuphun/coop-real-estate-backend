@@ -171,13 +171,13 @@ route.get('/admin/getAllPropertyReportTopic',auth.requiredToken,report_ct.getAll
 route.post('/admin/addNewReportTopic',auth.requiredToken,report_ct.addNewReportTopic)
 
 //update report tpoic
-route.put('/admin/updateReportTopic',auth.requiredToken,report_ct.updateReportTopic)
+route.put('/admin/updateUserReportTopic',auth.requiredToken,report_ct.updateUserReportTopic)
 
 //get all report topic
-route.get('/admin/getAllReportTopic',auth.requiredToken,report_ct.getAllReportTopic)
+route.get('/admin/getAllUserReportTopic',auth.requiredToken,report_ct.getAllUserReportTopic)
 
 //delete report topic
-route.delete('/admin/deleteReportTopic/:id',auth.requiredToken,report_ct.deleteReportTopic)
+route.delete('/admin/deleteUserReportTopic/:id',auth.requiredToken,report_ct.deleteUserReportTopic)
 
 //get all property report
 route.post('/admin/getAllPropertyReport',auth.requiredToken,report_ct.getAllPropertyReport)

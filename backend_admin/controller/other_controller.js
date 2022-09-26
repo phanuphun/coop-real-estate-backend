@@ -306,25 +306,40 @@ module.exports.deleteUserReq = (req,res) => {
 //***************************************************************************** */
 //insert features
 module.exports.insertFeatures = (req,res) => {
-    featuresName = req.body.featuresName
-    dbConn.query('SELECT * FROM property_additional_features WHERE name_th = ?',[featuresName],(err,result)=>{
+    // featuresName = req.body.featuresName
+    sqlCheckName = `
+        SELECT 
+            * 
+        FROM property_additional_features 
+        WHERE name_th = '${req.body.additionalName_th}'
+    `
+    sqlInsert = `
+        INSERT INTO property_additional_features(
+                    name_th,
+                    name_en) 
+                VALUES(
+                    '${req.body.additionalName_th}',
+                    '${req.body.additionalName_en}'
+                );
+    `
+    dbConn.query(sqlCheckName,(err,result)=>{
         if(err) err_service.errorNotification(err,'add new features => check features name')
         if(result.length >= 1){
             res.send({
                 status:false,
                 msg:'ชื่อนี้มีอยู่แล้ว'
             })
-        }else if(featuresName === ' ' || featuresName === null || featuresName === ' ') {
+        }else if(req.body.additionalName_th === ' ' || req.body.additionalName_th === null || req.body.additionalName_th === ' ') {
             res.send({
                 status:false,
                 msg:'ชื่อไม่ถูกต้อง'
             })
         }else{
-            dbConn.query('INSERT INTO property_additional_features(name_th) VALUES(?)',[featuresName],(err,result)=>{
+            dbConn.query(sqlInsert,(err,result)=>{
                 if(err) err_service.errorNotification(err,'add new package => insert new feature')
                 res.send({
                     status:true,
-                    msg:'เพิ่มข้อมูลสำเร็จ'
+                    msg:'เพิ่ม' +req.body.additionalName_th + 'สำเร็จ'
                 })
             })
         }

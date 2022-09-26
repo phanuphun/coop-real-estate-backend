@@ -93,10 +93,11 @@ module.exports.confirmUserReport = (req,res) => {
 }
 //add property report topic
 module.exports.addPropertyReportTopic = (req,res) => {
+    console.log(req.body);
     sql =`
         INSERT INTO
             detail_report_properties(name,description)
-            VALUES('${req.body.name}','${req.body.desc}');
+            VALUES('${req.body.topicName}','${req.body.topicDetail}');
     `
 
     dbConn.query(sql,(err,result)=>{
@@ -109,9 +110,10 @@ module.exports.addPropertyReportTopic = (req,res) => {
 }
 //update prpoerty report topic
 module.exports.updatePropertyReportTopic = (req,res) => {
+    console.log(req.body);
     id = req.body.id
-    topicName = req.body.name
-    desc = req.body.desc
+    topicName = req.body.topicName
+    desc = req.body.topicDetail
     sql = `
         UPDATE
             detail_report_properties
@@ -120,7 +122,6 @@ module.exports.updatePropertyReportTopic = (req,res) => {
         WHERE id = ${id} ;
     `
 
-    console.log(req.body);
     dbConn.query(sql,(err,result)=>{
         if(err)err_service.errorNotification(err,'update property report topic ')
         res.send({
@@ -164,11 +165,15 @@ dbConn.query(sql,(err,result)=>{
 }
 //add user New Report Topic
 module.exports.addNewReportTopic = (req,res) => {
-
+    
     sql =`
         INSERT INTO
-            detail_report_users(name,description)
-            VALUES('${req.body.name}','${req.body.desc}');
+            detail_report_users(
+                name,
+                description)
+            VALUES(
+                '${req.body.topicName}',
+                '${req.body.topicDetail}');
         `
     dbConn.query(sql,(err,result)=>{
         if(err) err_service.errorNotification(err,' set user report topic ')
@@ -179,11 +184,11 @@ module.exports.addNewReportTopic = (req,res) => {
     })
 }
 //update user report topic
-module.exports.updateReportTopic = (req,res) => {
+module.exports.updateUserReportTopic = (req,res) => {
 
     id = req.body.id
-    topicName = req.body.name
-    desc = req.body.desc
+    topicName = req.body.topicName
+    desc = req.body.topicName
     sql = `
         UPDATE
             detail_report_users
@@ -201,7 +206,7 @@ module.exports.updateReportTopic = (req,res) => {
 
 }
 //get user report topic
-module.exports.getAllReportTopic = (req,res) => {
+module.exports.getAllUserReportTopic = (req,res) => {
 
     sql =`
         SELECT
@@ -220,7 +225,7 @@ module.exports.getAllReportTopic = (req,res) => {
 
 }
 //delete user Report Topic
-module.exports.deleteReportTopic = (req,res) => {
+module.exports.deleteUserReportTopic = (req,res) => {
     sql =`
         DELETE FROM
             detail_report_users
