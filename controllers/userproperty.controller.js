@@ -335,7 +335,7 @@ const submitProp = async (req, res) => {
 
     return res.send({
       status: 1,
-      message: `Submit property "${req.body.title}" successfully`,
+      message: `ALERT.SUBMIT_PROPERT_SUCCESS`,
     });
   } catch (err) {
     res.status(500).send(err.message);
@@ -437,6 +437,7 @@ const userRemoveProp = async (req, res) => {
     const removeProp = await UserSubProp.destroy({
       where: {
         id: propertyId,
+        userId: userId
       },
     });
 
