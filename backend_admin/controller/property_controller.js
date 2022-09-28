@@ -2,7 +2,8 @@ const dbConn = require("./../database");
 const err_service = require('./../../service/err_service')
 const multer_s = require('./../../service/multer');
 require('dotenv').config()
-const dateAndTime = require('date-and-time')
+const dateAndTime = require('date-and-time');
+const { stat } = require("fs");
 
 let date = dateAndTime.format(new Date(),'YYYY/MM/DD HH:mm:ss')
 
@@ -242,7 +243,8 @@ module.exports.addNewProperty = (req,res)=>{
             houseNo,
             addressId,
             createdAt,
-            updatedAt) 
+            updatedAt,
+            displayStatus) 
         VALUES(
             '${userId}',
             '${title}',
@@ -256,7 +258,8 @@ module.exports.addNewProperty = (req,res)=>{
             '${houseNO}',
             ${Subdistricts_sl},
             '${date}',
-            '${date}');
+            '${date}',
+            1);
     `
 
     sqlGetPropByid =`
@@ -446,7 +449,7 @@ module.exports.getPropertyByID = (req, res) => {
         subDistrictsID = result[0].addressId;
         user_sub_prop_additionalID = result[0].additionalId; //รหัสตารางย่อยที่เก็บรายชื่อห้องไว้
         property_ppID = result[0].propFor; // รหัสประเภทอสังหาริมทรัพย์
-
+        
         //user
         realData.user.userId  = result[0].userId;
 
@@ -468,6 +471,7 @@ module.exports.getPropertyByID = (req, res) => {
         realData.additional.lng = result[0].lng;
         realData.additional.createdAt = result[0].createdAt;
         realData.additional.updatedAt = result[0].updatedAt;
+        realData.additional.displayStatus = result[0].displayStatus;
 
         //rooms
         realData.rooms.floor = result[0].floor;
@@ -827,6 +831,41 @@ module.exports.deletePropertyByUser = (id) =>{
         if(err) err_service.errorNotification(err,'delete property by id')
     })
 }
+
+//chang property status
+module.exports.changePropertyStatus = (req,res) => {
+    id = req.body.id
+    displayStatus = req.body.displayStatus
+
+    if(displayStatus === 1){
+        displayStatus = 0
+    }else{
+        displayStatus = 1
+    }
+
+    sql = `
+        UPDATE user_sub_props 
+        SET displayStatus = ${displayStatus}
+        WHERE id =${id};
+    `
+
+    dbConn.query(sql,(err,result)=>{ 
+        if(err)err_service.errorNotification(err,'change property status')
+        if(displayStatus === 1){
+            res.send({
+                status:true,
+                msg:'เปิดการมองเห็นเรียบร้อยแล้ว'
+            })
+        }else{
+            res.send({
+                status:true,
+                msg:'ปิดการมองเห็นเรียบร้อยแล้ว'
+            })
+        }
+    })
+}
+
+
 //chcekFeatures
 function chcekFeatures(additionalID,featuresID){
     // check ว่ามี id ไหม มีลบให้หมดแล้วค่อย add เข้าไปใหม่

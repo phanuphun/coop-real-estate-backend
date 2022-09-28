@@ -143,6 +143,8 @@ route.get('/admin/getNewPropertyLength',auth.requiredToken,property_ct.getNewPro
 //seach property table
 route.post('/admin/searchProperty',auth.requiredToken,property_ct.searchProperty)
 
+//change status property 
+route.post('/admin/changePropertyStatus',auth.requiredToken,property_ct.changePropertyStatus)
 //***************************************************************************** */
 // report
 //***************************************************************************** */
