@@ -178,7 +178,7 @@ module.exports.getAllContactUs = (req,res) => {
             *
         FROM contact_us
         ORDER BY replyStatus ASC ,
-                contactId ASC
+                contactId DESC
         LIMIT 100;
     `
     dbConn.query(sql,(err,result)=>{
@@ -189,6 +189,25 @@ module.exports.getAllContactUs = (req,res) => {
         })
     })
 }
+
+module.exports.getNewContactUsLength = (req,res) =>{
+    sql =` 
+        SELECT
+            COUNT(*) AS newContactLength 
+        FROM contact_us
+        WHERE replyStatus = 0  
+    `
+    dbConn.query(sql,(err,result)=>{
+        if(err)err_service.errorNotification(err,'get new contact us length')
+        let newContactUsLength = result[0].newContactLength
+        res.send({
+            status:true,
+            data:newContactUsLength
+        })
+    })
+
+}
+
 //delte contact uus 
 module.exports.deleteContactUs = (req,res) => {
     sql =  `

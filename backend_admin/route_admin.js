@@ -342,6 +342,9 @@ route.get('/admin/lineN',other_ct.lineNotify)
 //get all contact us 
 route.get('/admin/getAllContactUs',auth.requiredToken,other_ct.getAllContactUs)
 
+//get New ContactUs Length
+route.get('/admin/getNewContactUsLength',auth.requiredToken,other_ct.getNewContactUsLength)
+
 //delete contact us 
 route.delete('/admin/deleteContactUs/:id',auth.requiredToken,other_ct.deleteContactUs)
 

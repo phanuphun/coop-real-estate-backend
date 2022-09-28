@@ -341,8 +341,7 @@ module.exports.addNewMember = (req,res) => {
                         1,
                         2,
                         1,
-                        ADDDATE(CURRENT_TIMESTAMP(),
-                        INTERVAL +30 DAY))
+                        ADDDATE(CURRENT_TIMESTAMP(),INTERVAL +30 DAY))
     `
 
     dbConn.query(sqlInsertUser,(err,result)=>{
@@ -386,7 +385,7 @@ module.exports.updateUser = (req,res) => {
     organization = req.body.organization
     image = req.body.gallery[0]
     packageExpire = req.body.packageExpire
-
+    console.log(packageExpire);
     if(fname === null){
         fname = ''
     }
