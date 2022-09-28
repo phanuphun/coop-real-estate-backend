@@ -189,7 +189,7 @@ module.exports.getAllContactUs = (req,res) => {
         })
     })
 }
-
+// get new contact length 
 module.exports.getNewContactUsLength = (req,res) =>{
     sql =` 
         SELECT
@@ -207,7 +207,6 @@ module.exports.getNewContactUsLength = (req,res) =>{
     })
 
 }
-
 //delte contact uus 
 module.exports.deleteContactUs = (req,res) => {
     sql =  `
@@ -461,7 +460,7 @@ module.exports.updateAboutUs =(req,res)=>{
 
 
 //***************************************************************************** */
-// about us 
+// promotion
 //***************************************************************************** */
 // get all promotion 
 module.exports.getAllpromotion = (req,res)=> {
@@ -590,4 +589,24 @@ module.exports.changStatusPromotion = (req,res) =>{
         })
     })
 
+}
+
+//***************************************************************************** */
+// feedbacks
+//***************************************************************************** */
+module.exports.getAllFeedback = (req,res) => {
+    sql =`
+        SELECT 
+            *
+        FROM feedbacks
+        ORDER BY feedbackId DESC
+        LIMIT 50;
+    `
+    dbConn.query(sql,(err,result)=>{
+        if(err)err_service.errorNotification(err,'get all feedbacks')
+        res.send({
+            status:true,
+            data:result
+        })
+    })
 }

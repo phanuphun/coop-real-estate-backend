@@ -382,4 +382,10 @@ route.delete('/admin/deletePromotion/:id',auth.requiredToken,other_ct.deleteProm
 //chanfe status promotion
 route.put('/admin/changeStatusPromotion',auth.requiredToken,other_ct.changStatusPromotion)
 
+//***************************************************************************** */
+// feedbacks
+//***************************************************************************** */
+//get all feedback
+route.get('/admin/getAllfeedback',auth.requiredToken,other_ct.getAllFeedback)
+
 module.exports = route ;
