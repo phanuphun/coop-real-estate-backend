@@ -218,8 +218,10 @@ module.exports.moneyTransferOverview = (req,res) => {
             users.pictureUrl AS userImage,
             COUNT(money_transfers.id) AS orderCountPackage,
             SUM(money_transfers.price) AS totalPricePackage
+
         FROM money_transfers
         INNER JOIN users ON users.id = money_transfers.userId
+        WHERE money_transfers.confirm = 1 
         GROUP BY money_transfers.userId
         ORDER BY totalPricePackage DESC
         LIMIT 1;
