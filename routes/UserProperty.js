@@ -39,6 +39,8 @@ router.post('/removeFromCompareById/:propertyId', validator.verify, controller.r
 
 router.post('/clearAllCompare', validator.verify, controller.clearAllCompare)
 
+router.post('/userChangePropertyStatus/:propertyId', validator.verify, controller.userChangePropertyStatus)
+
 
 
 module.exports = router

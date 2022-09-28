@@ -974,48 +974,26 @@ ${ADMIN_PATH}/realEstate/money-transfer/${message.id}`,
       });
       propertyId.pop();
 
-      let gallery = await UserSubPropGallery.findAll({
-        attributes: ["path"],
-        where: {
-          propertyId: { [Op.in]: propertyId },
-        },
-      });
-
-      let image = [];
-      gallery.forEach((gal, index) => {
-        image.push(gal.path);
-      });
-
-      image.forEach((img) => {
-          try {
-            let absolutePath = path.resolve(
-              "public/images/properties/" + img
-            );
-            if (fs.existsSync(absolutePath)) {
-              fs.unlinkSync(String(absolutePath));
-            }
-          } catch (error) {
-            console.log("image does not exist");
-          }
-        });
-
-      const removeProperty = await UserSubProp.destroy({
+      let disableProperties = await UserSubProp.update({
+        displayStatus: false,
+      },
+       {
         where: {
           userId: userId,
           id: { [Op.in]: propertyId }
         }
-      })
+       })
 
-      const resetPackage = await Users.update({
+       let resetPackage = await Users.update({
         packageId: 1
-      },
-      {
+       },
+       {
         where: {
           id: userId
         }
-      })
+       })
 
-      return res.send({ status: 1, message: 'ALERT.CANCELED_PACKAGE' });
+      return res.send({ status: 1, message: 'ALERT.CANCELED_PACKAGE_SUCCESS'});
     } catch (err) {
       res.status(500).send(err.message);
     }

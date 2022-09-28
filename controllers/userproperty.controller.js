@@ -177,6 +177,7 @@ const submitProp = async (req, res) => {
       lng: req.body.lng,
       houseNo: req.body.houseNo,
       addressId: req.body.addressId,
+      displayStatus: 1
     });
 
     let propertyId = await UserSubProp.findOne({
@@ -561,6 +562,8 @@ const getUserProperties = async (req, res) => {
         
         and ((users.packageExpire > cast(now() as date ) and users.packageId != 1 and users.displayStatus = 1) or (users.packageId = 1 and users.displayStatus = 1))
 
+        and (user_sub_props.displayStatus = true or user_sub_props.displayStatus = 1)
+
         ${sort} limit ${req.params.perPage} offset ${req.params.page}
       `);
 
@@ -669,6 +672,8 @@ const getUserProperties = async (req, res) => {
         
         and ((users.packageExpire > cast(now() as date ) and users.packageId != 1 and users.displayStatus = 1) or (users.packageId = 1 and users.displayStatus = 1))
         
+        and (user_sub_props.displayStatus = true or user_sub_props.displayStatus = 1)
+
         ${sort} limit ${req.params.perPage} offset ${req.params.page}
         `
     );
@@ -746,6 +751,8 @@ const getUserProperties = async (req, res) => {
             or (user_sub_prop_additionals.yearBuilt between ${yearBuilt.from} and ${yearBuilt.to})  
             or (${yearBuilt.from} is null and ${yearBuilt.to} is null))
         
+        and (user_sub_props.displayStatus = true or user_sub_props.displayStatus = 1)
+
         and ((users.packageExpire > cast(now() as date ) and users.packageId != 1 and users.displayStatus = 1) or (users.packageId = 1 and users.displayStatus = 1))
         ${sort} 
         
@@ -825,6 +832,7 @@ const getUserPropertyById = async (req, res) => {
               user_sub_props.description as description,
               user_sub_props.priceSale as priceSale,
               user_sub_props.priceRent as priceRent,
+              user_sub_props.displayStatus as propertyStatus,
               
               user_sub_props.lat as lat,
               user_sub_props.lng as lng,
@@ -862,7 +870,7 @@ const getUserPropertyById = async (req, res) => {
               users.packageExpire as packageExpire,
               users.packageId as packageId,
               users.displayStatus as displayStatus
-
+         
         from user_sub_props
 
         inner join property_purposes propPurpose on user_sub_props.propFor = propPurpose.id
@@ -881,7 +889,7 @@ const getUserPropertyById = async (req, res) => {
     let dateNow = new Date();
     if (
       (dateNow > response.packageExpire && response.packageId != 1) ||
-      response.displayStatus == 0
+      response.displayStatus == 0 || response.propertyStatus == 0
     ) {
       return res.send({ status: 2 }); // status 2 is for user package is expired or user have been banned, can not watch this properrty
     }
@@ -1064,6 +1072,7 @@ const getUserPropertiesHome = async (req, res) => {
         
         and ((users.packageExpire > cast(now() as date ) and users.packageId != 1 and users.displayStatus = 1) or (users.packageId = 1 and users.displayStatus = 1))
 
+        and (user_sub_props.displayStatus = true or user_sub_props.displayStatus = 1)
             
         ${sort} limit ${req.params.perPage} offset ${req.params.page}
       `);
@@ -1166,6 +1175,8 @@ const getUserPropertiesHome = async (req, res) => {
             or (${yearBuilt.from} is null and ${yearBuilt.to} is null))
         
         and ((users.packageExpire > cast(now() as date ) and users.packageId != 1 and users.displayStatus = 1) or (users.packageId = 1 and users.displayStatus = 1))
+
+        and (user_sub_props.displayStatus = true or user_sub_props.displayStatus = 1)
 
         ${sort} limit ${req.params.perPage} offset ${req.params.page}
         `
@@ -1313,6 +1324,8 @@ const getPropertiesbyAgent = async (req, res) => {
         
         and ((users.packageExpire > cast(now() as date ) and users.packageId != 1 and users.displayStatus = 1) or (users.packageId = 1 and users.displayStatus = 1))
         
+        and (user_sub_props.displayStatus = true or user_sub_props.displayStatus = 1)
+
         ${sort} limit ${req.params.perPage} offset ${req.params.page}
       `);
 
@@ -1417,6 +1430,8 @@ const getPropertiesbyAgent = async (req, res) => {
         
         and ((users.packageExpire > cast(now() as date ) and users.packageId != 1 and users.displayStatus = 1) or (users.packageId = 1 and users.displayStatus = 1))
 
+        and (user_sub_props.displayStatus = true or user_sub_props.displayStatus = 1)
+
         ${sort} limit ${req.params.perPage} offset ${req.params.page}
         `
     );
@@ -1485,7 +1500,7 @@ const getMyproperties = async (req, res) => {
       where: {
         userId: userId,
       },
-      attributes: ["id", "title", "createdAt"],
+      attributes: ["id", "title", "createdAt", "displayStatus"],
       include: [
         {
           model: UserSubPropGallery,
@@ -1505,6 +1520,7 @@ const getMyproperties = async (req, res) => {
         prop.user_sub_prop_galleries[prop.user_sub_prop_galleries.length - 1]
           .path
       }`;
+      temp.displayStatus = prop.displayStatus
       data.push(temp);
     });
     res.send({ data: data });
@@ -1942,6 +1958,50 @@ const clearAllCompare = async (req, res) => {
   }
 };
 
+const userChangePropertyStatus = async(req, res) => {
+  try {
+    const userId = res.locals.userId
+    const propertyId = req.params.propertyId
+    const checked = req.body.checked
+    let userProperty = await Users.findOne({
+      where: {
+        id: userId
+      },
+      include: [{
+        model: Package,
+        attributes: ['propertyLimit']
+      },
+    {
+      model: UserSubProp,
+      attributes: ['id'],
+      where: {
+        displayStatus: true || 1
+      }
+    }]
+    })
+    let propertyLimit = userProperty.package.propertyLimit
+    let propertyShowed = userProperty.user_sub_props.length
+
+
+    if (propertyShowed >= propertyLimit && checked == true) {
+      return res.send({ status: 2 , message: 'ALERT.DISPLAY_CHANGE_LIMIT'})
+    } else {
+      let changeStatus = await UserSubProp.update({
+        displayStatus: checked
+      },
+       {
+        where: {
+          id: propertyId,
+          userId: userId
+        }
+       })
+       return res.send({ status: 1 ,  message: 'ALERT.DISPLAY_CHANGE_SUCCESS'})
+    }
+  } catch (err) {
+    res.status(500).send(err.message)
+  }
+}
+
 module.exports = {
   getUserProperties: getUserProperties,
   getUserPropertiesHome: getUserPropertiesHome,
@@ -1958,5 +2018,6 @@ module.exports = {
   removeFromCompareById: removeFromCompareById,
   clearAllCompare: clearAllCompare,
   checkUserInfoBeforeSubmit: checkUserInfoBeforeSubmit,
-  checkUserOwnProperty: checkUserOwnProperty
+  checkUserOwnProperty: checkUserOwnProperty,
+  userChangePropertyStatus: userChangePropertyStatus
 };

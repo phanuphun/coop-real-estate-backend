@@ -24,7 +24,7 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.STRING
         },
         dateTransfer: {
-            type: Sequelize.DATE
+            type: Sequelize.DATE(6)
         },
         confirm: {
             type: Sequelize.INTEGER(1)

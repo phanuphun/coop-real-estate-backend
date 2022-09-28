@@ -39,6 +39,9 @@ module.exports = (sequelize, Sequelize) => {
         addressId:{
             type: Sequelize.INTEGER
         },
+        displayStatus: {
+            type: Sequelize.BOOLEAN
+        }
     },
     {
         timestamp: true 
