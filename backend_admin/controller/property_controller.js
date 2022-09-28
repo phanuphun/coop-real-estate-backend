@@ -331,9 +331,12 @@ module.exports.addNewProperty = (req,res)=>{
 }
 //get new property length
 module.exports.getNewPropertyLength = (req,res) => {
-    sql = `SELECT COUNT(*) AS newPropertyLength FROM user_sub_props
+    sql = `
+        SELECT 
+            COUNT(*) AS newPropertyLength 
+        FROM user_sub_props
         WHERE createdAt >= ADDDATE(CURRENT_TIMESTAMP(), INTERVAL -7 DAY)
-        AND createdAt <= CURRENT_TIMESTAMP();`
+              AND createdAt <= CURRENT_TIMESTAMP();`
     dbConn.query(sql,(err,result)=>{
         if(err) err_service.errorNotification(err,'get new property length one week ')
         res.send({
@@ -849,6 +852,9 @@ function chcekFeatures(additionalID,featuresID){
             }
         }else{
             // console.log('SET NULL ');
+            sqlSetNull = `
+            
+            `
             dbConn.query(`INSERT INTO user_sub_prop_additional_features(additionalId,featuresId) VALUES(?,NULL)`,[additionalID],(err,result)=>{
                 if(err) err_service.errorNotification(err,'chcekFeatures => set NULL')
             })
