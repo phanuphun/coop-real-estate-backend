@@ -4,14 +4,16 @@ const { HOST, PORT, USER, PASSWORD, DATABASE } = require('../config/config')
   
 
 const sequelize = new Sequelize(
-    'test',
-    'root',
-    '', {
+    'test',//database
+    'root',//user
+    '',//password 
+    {//config
   
         dialect: 'mysql',
         host: '127.0.0.1',
         charset: 'utf8',
         collate: 'utf8_general_ci',
+        operatorsAliases:0,
         timezone:"+07:00"
     }
 );

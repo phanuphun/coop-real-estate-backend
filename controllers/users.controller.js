@@ -876,7 +876,7 @@ module.exports = {
         periodId: req.body.periodId,
         price: req.body.price,
         pictureUrl: picture,
-        dateTransfer: req.body.paymentTime,
+        dateTransfer: String(req.body.paymentTime),
         confirm: 0,
       });
 

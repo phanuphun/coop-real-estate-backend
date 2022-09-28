@@ -5,7 +5,6 @@ const {
   Geography,
   sequelize,
 } = require("../model/index.model");
-const json_data = require("../public/asset/sub-districts.json");
 module.exports = {
   getProvinces: async (req, res) => {
     try {

@@ -15,6 +15,6 @@ router.get('/getSubDistricts/:id/:lang', controller.getSubDistricts)
 
 // router.get('/getGeo', controller.getGeo)
 
-// router.get(`/getProvinceLatLng/:id`, controller.getProvinceLatLng)
+router.get(`/getProvinceLatLng/:id`, controller.getProvinceLatLng)
 
 module.exports = router

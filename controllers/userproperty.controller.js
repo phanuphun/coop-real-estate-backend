@@ -411,7 +411,7 @@ const checkUserInfoBeforeSubmit = async (req, res) => {
 const userRemoveProp = async (req, res) => {
   try {
     const propertyId = req.params.propertyId;
-    const userId = res.locals.id;
+    const userId = res.locals.userId;
 
     const gallery = await UserSubPropGallery.findAll({
       where: {
