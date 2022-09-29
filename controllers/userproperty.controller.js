@@ -28,7 +28,6 @@ const {
 } = require("../config/config");
 const fs = require("fs");
 const path = require("path");
-const { checkCompare } = require("./users.controller");
 
 const config = {
   channelAccessToken: CHANNEL_ACCESS_TOKEN,
@@ -177,7 +176,7 @@ const submitProp = async (req, res) => {
       lng: req.body.lng,
       houseNo: req.body.houseNo,
       addressId: req.body.addressId,
-      displayStatus: 1
+      displayStatus: 1,
     });
 
     let propertyId = await UserSubProp.findOne({
@@ -356,12 +355,13 @@ const checkUserInfoBeforeSubmit = async (req, res) => {
         {
           model: Users,
           attributes: ["fname", "lname", "packageId", "packageExpire"],
-          include: [{
-            model: Package,
-            attributes: ["propertyLimit"],
-          }, ]
-        }
-        
+          include: [
+            {
+              model: Package,
+              attributes: ["propertyLimit"],
+            },
+          ],
+        },
       ],
     });
 
@@ -375,7 +375,7 @@ const checkUserInfoBeforeSubmit = async (req, res) => {
       userDetail.user.lname == null ||
       userDetail.user.lname == ""
     ) {
-      return res.send({ status: 2, message: "ALERT.INFO_NOT_ENOUGH" });//status 2 if for info not enough redirect to profile
+      return res.send({ status: 2, message: "ALERT.INFO_NOT_ENOUGH" }); //status 2 if for info not enough redirect to profile
     }
 
     let packageId = userDetail.user.packageId;
@@ -408,7 +408,6 @@ const checkUserInfoBeforeSubmit = async (req, res) => {
   }
 };
 
-
 const userRemoveProp = async (req, res) => {
   try {
     const propertyId = req.params.propertyId;
@@ -438,7 +437,7 @@ const userRemoveProp = async (req, res) => {
     const removeProp = await UserSubProp.destroy({
       where: {
         id: propertyId,
-        userId: userId
+        userId: userId,
       },
     });
 
@@ -889,7 +888,8 @@ const getUserPropertyById = async (req, res) => {
     let dateNow = new Date();
     if (
       (dateNow > response.packageExpire && response.packageId != 1) ||
-      response.displayStatus == 0 || response.propertyStatus == 0
+      response.displayStatus == 0 ||
+      response.propertyStatus == 0
     ) {
       return res.send({ status: 2 }); // status 2 is for user package is expired or user have been banned, can not watch this properrty
     }
@@ -1470,27 +1470,26 @@ const getPropertiesbyAgent = async (req, res) => {
   }
 };
 
-const checkUserOwnProperty = async(req, res) => {
+const checkUserOwnProperty = async (req, res) => {
   try {
-    const userId = res.locals.userId
-    const propertyId = req.params.propertyId
+    const userId = res.locals.userId;
+    const propertyId = req.params.propertyId;
 
     const check = await UserSubProp.findOne({
       where: {
         id: propertyId,
-        userId: userId
-      }
-    })
+        userId: userId,
+      },
+    });
 
     if (check) {
-      return res.send({ status: 2 })// status 2 is for user is own property cannot report 
+      return res.send({ status: 2 }); // status 2 is for user is own property cannot report
     }
-    return res.send({ status: 1 })//status 1 is for user not owner property
-
+    return res.send({ status: 1 }); //status 1 is for user not owner property
   } catch (err) {
-    res.status(500).send(err.message)
+    res.status(500).send(err.message);
   }
-}
+};
 
 const getMyproperties = async (req, res) => {
   try {
@@ -1520,7 +1519,7 @@ const getMyproperties = async (req, res) => {
         prop.user_sub_prop_galleries[prop.user_sub_prop_galleries.length - 1]
           .path
       }`;
-      temp.displayStatus = prop.displayStatus
+      temp.displayStatus = prop.displayStatus;
       data.push(temp);
     });
     res.send({ data: data });
@@ -1915,7 +1914,8 @@ const getUserCompare = async (req, res) => {
       temp.purpose_nameen = compare.user_sub_prop.property_purpose.name_en;
       temp.type_nameth = compare.user_sub_prop.property_type.name_th;
       temp.type_nameen = compare.user_sub_prop.property_type.name_en;
-      compare.user_sub_prop.user_sub_prop_galleries = compare.user_sub_prop.user_sub_prop_galleries.reverse();
+      compare.user_sub_prop.user_sub_prop_galleries =
+        compare.user_sub_prop.user_sub_prop_galleries.reverse();
       temp.gallery = `${HOST}/images/properties/${compare.user_sub_prop.user_sub_prop_galleries[0].path}`;
       data.push(temp);
     });
@@ -1958,49 +1958,51 @@ const clearAllCompare = async (req, res) => {
   }
 };
 
-const userChangePropertyStatus = async(req, res) => {
+const userChangePropertyStatus = async (req, res) => {
   try {
-    const userId = res.locals.userId
-    const propertyId = req.params.propertyId
-    const checked = req.body.checked
+    const userId = res.locals.userId;
+    const propertyId = req.params.propertyId;
+    const checked = req.body.checked;
     let userProperty = await Users.findOne({
       where: {
-        id: userId
+        id: userId,
       },
-      include: [{
-        model: Package,
-        attributes: ['propertyLimit']
-      },
-    {
-      model: UserSubProp,
-      attributes: ['id'],
+      include: [
+        {
+          model: Package,
+          attributes: ["propertyLimit"],
+        },
+      ],
+    });
+
+    let propertyShowed = await UserSubProp.count({
       where: {
-        displayStatus: true || 1
-      }
-    }]
-    })
-    let propertyLimit = userProperty.package.propertyLimit
-    let propertyShowed = userProperty.user_sub_props.length
-
-
-    if (propertyShowed >= propertyLimit && checked == true) {
-      return res.send({ status: 2 , message: 'ALERT.DISPLAY_CHANGE_LIMIT'})
-    } else {
-      let changeStatus = await UserSubProp.update({
-        displayStatus: checked
+        userId: userId,
+        displayStatus: true || 1,
       },
-       {
+    });
+    let propertyLimit = userProperty.package.propertyLimit;
+    if (propertyShowed) {
+      if (propertyShowed >= propertyLimit && checked == true) {
+        return res.send({ status: 2, message: "ALERT.DISPLAY_CHANGE_LIMIT" });
+      }
+    }
+    let changeStatus = await UserSubProp.update(
+      {
+        displayStatus: checked,
+      },
+      {
         where: {
           id: propertyId,
-          userId: userId
-        }
-       })
-       return res.send({ status: 1 ,  message: 'ALERT.DISPLAY_CHANGE_SUCCESS'})
-    }
+          userId: userId,
+        },
+      }
+    );
+    return res.send({ status: 1, message: "ALERT.DISPLAY_CHANGE_SUCCESS" });
   } catch (err) {
-    res.status(500).send(err.message)
+    res.status(500).send(err.message);
   }
-}
+};
 
 module.exports = {
   getUserProperties: getUserProperties,
@@ -2019,5 +2021,5 @@ module.exports = {
   clearAllCompare: clearAllCompare,
   checkUserInfoBeforeSubmit: checkUserInfoBeforeSubmit,
   checkUserOwnProperty: checkUserOwnProperty,
-  userChangePropertyStatus: userChangePropertyStatus
+  userChangePropertyStatus: userChangePropertyStatus,
 };

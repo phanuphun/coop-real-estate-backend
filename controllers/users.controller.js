@@ -236,7 +236,7 @@ module.exports = {
           },
           {
             model: UserSubProp,
-            attributes: ['id']
+            attributes: ['id'],
           }
         ],
       });
@@ -266,10 +266,11 @@ module.exports = {
       const count = await UserSubProp.count({
         where: {
           userId: req.params.id,
+          displayStatus: true || 1
         },
       });
 
-      res.send({ data: data, count: count ,ddd: response});
+      res.send({ data: data, count: count });
     } catch (err) {
       res.status(500).send(err.message);
     }
@@ -311,7 +312,8 @@ module.exports = {
           },
           {
             model: UserSubProp,
-            attributes: ['id']
+            attributes: ['id'],
+            where: { displayStatus: true || 1 }
           }
         ],
         order: [['packageId', 'desc']]
