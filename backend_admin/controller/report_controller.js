@@ -96,11 +96,21 @@ module.exports.addPropertyReportTopic = (req,res) => {
     console.log(req.body);
     sql =`
         INSERT INTO
-            detail_report_properties(name,description)
-            VALUES('${req.body.topicName}','${req.body.topicDetail}');
+            detail_report_properties(
+                name,
+                description)
+            VALUES(
+                ?,
+                ?
+            );
     `
 
-    dbConn.query(sql,(err,result)=>{
+    value = [
+        req.body.topicName,
+        req.body.topicDetail
+    ]
+
+    dbConn.query(sql,value,(err,result)=>{
         if(err) err_service.errorNotification(err,' set property report topic ')
             res.send({
                 status:true,
@@ -117,12 +127,18 @@ module.exports.updatePropertyReportTopic = (req,res) => {
     sql = `
         UPDATE
             detail_report_properties
-        SET name = '${topicName}',
-            description = '${desc}'
-        WHERE id = ${id} ;
+        SET name = ?,
+            description = ?
+        WHERE id = ? ;
     `
 
-    dbConn.query(sql,(err,result)=>{
+    vaule = [
+        topicName,
+        desc,
+        id
+    ]
+
+    dbConn.query(sql,vaule,(err,result)=>{
         if(err)err_service.errorNotification(err,'update property report topic ')
         res.send({
             status:true,
@@ -172,10 +188,14 @@ module.exports.addNewReportTopic = (req,res) => {
                 name,
                 description)
             VALUES(
-                '${req.body.topicName}',
-                '${req.body.topicDetail}');
+                ?,
+                ?);
         `
-    dbConn.query(sql,(err,result)=>{
+    value = [
+        req.body.topicName,
+        req.body.topicDetail
+    ]
+    dbConn.query(sql,value,(err,result)=>{
         if(err) err_service.errorNotification(err,' set user report topic ')
             res.send({
                 status:true,
@@ -192,11 +212,17 @@ module.exports.updateUserReportTopic = (req,res) => {
     sql = `
         UPDATE
             detail_report_users
-        SET name = '${topicName}',
-            description = '${desc}'
-        WHERE id = ${id} ;
+        SET name = ?,
+            description = ?
+        WHERE id = ? ;
     `
-    dbConn.query(sql,(err,result)=>{
+
+    value = [
+        topicName,
+        desc,
+        id
+    ] 
+    dbConn.query(sql,value,(err,result)=>{
         if(err)err_service.errorNotification(err,'update report topic ')
         res.send({
             status:true,
@@ -267,7 +293,6 @@ module.exports.getAllPropertyReport = (req,res) => {
             if(err) err_service.errorNotification(err,'property report')
             let propertyData
             propertyData = result
-            console.log(propertyData.length);
             if(propertyData.length === 0){
                 res.send({
                     status:true,

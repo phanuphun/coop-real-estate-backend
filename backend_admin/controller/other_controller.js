@@ -101,13 +101,19 @@ module.exports.addNewOurService = (req,res) => {
                     icon,
                     detail)
                 VALUES(
-                    '${req.body.title}',
-                    '${req.body.icon}',
-                    '${req.body.detail}'
+                    ?,
+                    ?,
+                    ?
                 )
     `
 
-    dbConn.query(sqlInsert,(err,result)=>{
+    valueInsert = [
+        req.body.title,
+        req.body.icon,
+        req.body.detail
+    ]
+
+    dbConn.query(sqlInsert,valueInsert,(err,result)=>{
         if(err)err_service.errorNotification(err,'add new our service')
         res.send({
             status:true,
@@ -128,16 +134,23 @@ module.exports.deleteOurService = (req,res) => {
         })
     })
 }
-// update pur service
+// update our service
 module.exports.updateOurService = (req,res) => {
     sqlUpdate = `
         UPDATE our_services 
-        SET title = '${req.body.title}',
-            icon = '${req.body.icon}',
-            detail = '${req.body.detail}'
-        WHERE id = ${req.body.id}
+        SET title = ?,
+            icon = ?,
+            detail = ?
+        WHERE id = ?
     `
-    dbConn.query(sqlUpdate,(err,result)=>{
+
+    valueUpdate = [
+        req.body.title,
+        req.body.icon,
+        req.body.detail,
+        req.body.id
+    ]
+    dbConn.query(sqlUpdate,valueUpdate,(err,result)=>{
         if(err)err_service.errorNotification(err,'update our service')
         res.send({
             status:true,
@@ -329,18 +342,26 @@ module.exports.insertFeatures = (req,res) => {
         SELECT 
             * 
         FROM property_additional_features 
-        WHERE name_th = '${req.body.additionalName_th}'
+        WHERE name_th = ? ;
     `
+
+    valueCheckName = [req.body.additionalName_th]
+
     sqlInsert = `
         INSERT INTO property_additional_features(
                     name_th,
                     name_en) 
                 VALUES(
-                    '${req.body.additionalName_th}',
-                    '${req.body.additionalName_en}'
+                    ?,
+                    ?
                 );
     `
-    dbConn.query(sqlCheckName,(err,result)=>{
+
+    valueInsert = [
+        req.body.additionalName_th,
+        req.body.additionalName_en
+    ] 
+    dbConn.query(sqlCheckName,valueCheckName,(err,result)=>{
         if(err) err_service.errorNotification(err,'add new features => check features name')
         if(result.length >= 1){
             res.send({
@@ -353,7 +374,7 @@ module.exports.insertFeatures = (req,res) => {
                 msg:'ชื่อไม่ถูกต้อง'
             })
         }else{
-            dbConn.query(sqlInsert,(err,result)=>{
+            dbConn.query(sqlInsert,valueInsert,(err,result)=>{
                 if(err) err_service.errorNotification(err,'add new package => insert new feature')
                 res.send({
                     status:true,
@@ -365,15 +386,18 @@ module.exports.insertFeatures = (req,res) => {
 }
 //delete features
 module.exports.deleteFeatures = (req,res) => {
-let id = req.params.id
-sql_delete_fetures = 'DELETE FROM property_additional_features WHERE id = ?'
-dbConn.query(sql_delete_fetures,[id],(err,result)=>{
-    if(err) err_service.errorNotification(err,'delete feature')
-    res.send({
-        status:true,
-        msg:'ลบเรียบร้อย'
+    let id = req.params.id
+    sqlDelete  = `
+        DELETE FROM property_additional_features 
+        WHERE id = ?
+    `
+    dbConn.query(sqlDelete,[id],(err,result)=>{
+        if(err) err_service.errorNotification(err,'delete feature')
+        res.send({
+            status:true,
+            msg:'ลบเรียบร้อย'
+        })
     })
-})
 }
 
 //***************************************************************************** */
@@ -443,13 +467,17 @@ module.exports.getAboutUs = (req,res) => {
 module.exports.updateAboutUs =(req,res)=>{
     sql =  ` 
         UPDATE about_us
-        SET ourStory = '${req.body.ourStory}' , 
-            aboutCompany = '${req.body.aboutCompany}' ,
-            vision = '${req.body.vision}'
+        SET ourStory = ? , 
+            aboutCompany = ? ,
+            vision = ?
         WHERE id = 1 ;
     `
+    value = [ req.body.ourStory,
+            req.body.aboutCompany,
+            req.body.vision]
 
-    dbConn.query(sql,(err,result)=>{
+
+    dbConn.query(sql,value,(err,result)=>{
         if(err)err_service.errorNotification(err,'update aout us ')
         res.send({
             status:true,
@@ -464,7 +492,7 @@ module.exports.updateAboutUs =(req,res)=>{
 //***************************************************************************** */
 // get all promotion 
 module.exports.getAllpromotion = (req,res)=> {
-    sqlGetAll =    `
+    sqlGetAll = `
         SELEcT 
             *
         FROM promotions
@@ -492,16 +520,25 @@ module.exports.addNewPromotion = (req,res)=>{
                     displayStatus
                 )
                 VALUES(
-                    '${req.body.code}',
-                    '${req.body.title}',
-                    '${req.body.detail}',
-                    '${req.body.dateStart}',
-                    '${req.body.dateEnd}',
-                    0
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?,
+                    ?
                 )
     `
 
-    dbConn.query(sqlInsert,(err,result)=>{
+    valueInsert = [
+        req.body.code,
+        req.body.title,
+        req.body.detail,
+        req.body.dateStart,
+        req.body.dateEnd,
+        0
+    ]
+
+    dbConn.query(sqlInsert,valueInsert,(err,result)=>{
         if(err)err_service.errorNotification(err,'add new promotion ')
         res.send({
             status:true ,
@@ -529,15 +566,22 @@ module.exports.deletePromotion = (req,res) => {
 module.exports.updatePromotion = (req,res) => {
     sqlUpdate = `
         UPDATE promotions 
-        SET code = '${req.body.code}',
-            title = '${req.body.title}',
-            detail = '${req.body.detail}',
-            dateStart = '${req.body.dateStart}',
-            dateEnd = '${req.body.dateEnd}'
-        WHERE id = ${req.body.id}
-
+        SET code = ?,
+            title = ?,
+            detail = ?,
+            dateStart = ?,
+            dateEnd = ?
+        WHERE id = ?
     `
-    dbConn.query(sqlUpdate,(err,result)=>{
+
+    valueUpdate = [
+        req.body.code,
+        req.body.title,
+        req.body.detail,
+        req.body.dateStart,
+        req.body.dateEnd,
+        req.body.id] 
+    dbConn.query(sqlUpdate,valueUpdate,(err,result)=>{
         if(err)err_service.errorNotification(err,'update promotion ')
         res.send({
             status:true,
@@ -548,17 +592,12 @@ module.exports.updatePromotion = (req,res) => {
 
 // chang status promotion 
 module.exports.changStatusPromotion = (req,res) =>{ 
-
-
-
     sqlCheckStatus = `
         SELECT 
             displayStatus 
         FROM promotions
         WHERE id = ${req.body.id} 
     `
-
-
     dbConn.query(sqlCheckStatus,(err,result)=>{
         if(err)err_service.errorNotification(err,'change promotion display status => check display stats')
         let displayStatus = result[0].displayStatus
@@ -588,7 +627,6 @@ module.exports.changStatusPromotion = (req,res) =>{
             }
         })
     })
-
 }
 
 //***************************************************************************** */

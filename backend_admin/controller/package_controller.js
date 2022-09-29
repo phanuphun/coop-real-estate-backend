@@ -38,8 +38,6 @@ module.exports.packageOverview = (req,res) => {
             let packageValuePercent = []
             let packageNameResult = []
             // check package name 
-            
-
             for(let i =0 ; i < result.length ; i++){
                 packageValue.push(result[i].packageValue)
                 packageNameResult.push(result[i].packagesName)
@@ -67,7 +65,6 @@ module.exports.packageOverview = (req,res) => {
             }
             data.packageValuePercent = packageValuePercent
             data.packageName = packageName
-            console.log('percent',data.packageValuePercent);
             res.send({
                 status:true,
                 data:data
@@ -123,7 +120,7 @@ module.exports.insertPackage = (req, res) => {
                             price6M,
                             propertyLimit)
                         VALUES (
-                            '${packageName}',
+                            ?,
                             'เพิ่มรายละเอียดแพ็คเกจ',
                             0,
                             0,
@@ -189,16 +186,23 @@ module.exports.updatePackage = (req,res) =>{
     sql =`
         UPDATE
             packages
-        SET name = '${name}' ,
-            description = '${des}' ,
-            price1M = ${price1M} ,
-            price3M = ${price3M} ,
-            price6M = ${price6M} ,
-            propertyLimit = ${propLimit}
-        WHERE id = ${id}
-
+        SET name = ? ,
+            description = ? ,
+            price1M = ? ,
+            price3M = ? ,
+            price6M = ? ,
+            propertyLimit = ?
+        WHERE id = ?
     `
-    dbConn.query(sql,(err,result)=>{
+    valueUpdate = [
+        name,
+        des,
+        price1M,
+        price3M,
+        price6M,
+        propLimit,
+        id] 
+    dbConn.query(sql,valueUpdate,(err,result)=>{
         if(err)err_service.errorNotification(err,'update package')
         res.send({
             status:true,

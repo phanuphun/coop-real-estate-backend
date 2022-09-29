@@ -246,21 +246,37 @@ module.exports.addNewProperty = (req,res)=>{
             updatedAt,
             displayStatus) 
         VALUES(
-            '${userId}',
-            '${title}',
-            '${desc}',
-            ${propsPP_sl},
-            ${priceSale},
-            ${priceRent},
-            ${propsType_sl},
-            ${lat},
-            ${lng},
-            '${houseNO}',
-            ${Subdistricts_sl},
-            '${date}',
-            '${date}',
-            1);
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?,
+            ?);
     `
+    valueInsertSubprop = [
+        userId,
+        title,
+        desc,
+        propsPP_sl,
+        priceSale,
+        priceRent,
+        propsType_sl,
+        lat,
+        lng,
+        houseNO,
+        Subdistricts_sl,
+        date,
+        date,
+        1
+    ]
 
     sqlGetPropByid =`
         SELECT 
@@ -278,7 +294,7 @@ module.exports.addNewProperty = (req,res)=>{
         LIMIT 1;
     `
     //insert prop main
-    dbConn.query(sqlInsertSubProps,(err,result)=>{
+    dbConn.query(sqlInsertSubProps,valueInsertSubprop,(err,result)=>{
         if(err)err_service.errorNotification(err,'add new prop => main table')
         //get prop id
         dbConn.query(sqlGetPropByid,(err,result)=>{
@@ -301,7 +317,8 @@ module.exports.addNewProperty = (req,res)=>{
                 ${yearBuilt},
                 ${area},
                 ${propertyId})
-        `
+            `
+
             //insert additionals (rooms)
             dbConn.query(sqlInsertRooms,(err,result)=>{
                 if(err)err_service.errorNotification(err,'add new props => insert additional(rooms)')
@@ -602,9 +619,13 @@ module.exports.getPropertyByID = (req, res) => {
 };
 //get property List By user ID
 module.exports.getPropertyListByUserId = (req,res) => {
-    sql=`SELECT user_sub_props.* , user_sub_prop_galleries.path FROM user_sub_props
+    sql=`SELECT 
+            user_sub_props.* , 
+            user_sub_prop_galleries.path 
+        FROM user_sub_props
         INNER JOIN user_sub_prop_galleries ON user_sub_prop_galleries.propertyId = user_sub_props.id
-        WHERE user_sub_props.userId = ? GROUP BY user_sub_prop_galleries.propertyId;`
+        WHERE user_sub_props.userId = ? 
+        GROUP BY user_sub_prop_galleries.propertyId;`
     dbConn.query(sql,[req.params.id],(err,result)=>{
         if(err) err_service.errorNotification(err,'get property List By user ID')
         res.send({
@@ -616,11 +637,16 @@ module.exports.getPropertyListByUserId = (req,res) => {
 }
 //get favorite property list by user id
 module.exports.getFavoriteProperty = (req,res) => {
-    sql =`SELECT user_favorites.id AS FavId, user_sub_props.* , user_sub_prop_galleries.path FROM user_sub_props
-    INNER JOIN user_favorites ON user_sub_props.id = user_favorites.propertyId
-    INNER JOIN user_sub_prop_galleries ON user_sub_prop_galleries.propertyId = user_sub_props.id
-    WHERE user_favorites.userId = ?
-    GROUP BY user_favorites.propertyId ORDER BY user_favorites.id DESC`
+    sql =`
+        SELECT 
+            user_favorites.id AS FavId, 
+            user_sub_props.* , 
+            user_sub_prop_galleries.path 
+        FROM user_sub_props
+        INNER JOIN user_favorites ON user_sub_props.id = user_favorites.propertyId
+        INNER JOIN user_sub_prop_galleries ON user_sub_prop_galleries.propertyId = user_sub_props.id
+        WHERE user_favorites.userId = ?
+        GROUP BY user_favorites.propertyId ORDER BY user_favorites.id DESC`
 
     dbConn.query(sql,[req.params.id],(err,result)=>{
         if(err) err_service.errorNotification(err,'get favorite property')
@@ -633,11 +659,16 @@ module.exports.getFavoriteProperty = (req,res) => {
 }
 //get compare property list by user id
 module.exports.getCompareProperty = (req,res) => {
-    sql =`SELECT user_compares.id AS CompareId, user_sub_props.* , user_sub_prop_galleries.path FROM user_sub_props
-    INNER JOIN user_compares ON user_sub_props.id = user_compares.propertyId
-    INNER JOIN user_sub_prop_galleries ON user_sub_props.id = user_sub_prop_galleries.propertyId
-    WHERE user_compares.userId = ?
-    GROUP BY user_compares.propertyId ORDER BY user_compares.id DESC`
+    sql =`
+        SELECT 
+            user_compares.id AS CompareId, 
+            user_sub_props.* , 
+            user_sub_prop_galleries.path 
+        FROM user_sub_props
+        INNER JOIN user_compares ON user_sub_props.id = user_compares.propertyId
+        INNER JOIN user_sub_prop_galleries ON user_sub_props.id = user_sub_prop_galleries.propertyId
+        WHERE user_compares.userId = ?
+        GROUP BY user_compares.propertyId ORDER BY user_compares.id DESC`
     dbConn.query(sql,[req.params.id],(err,result)=>{
         if(err) err_service.errorNotification(err,'get compare property')
         res.send({
@@ -754,18 +785,34 @@ module.exports.updateProperty = (req,res) => {
     // update sub props ตารางใหญ่
     sql_update_userSubProps = `
         UPDATE user_sub_props
-        SET title = '${title}' , 
-            description = '${desc}' , 
-            propFor = ${ppID} , 
-            propType = ${TypeID} ,
-            priceSale = ${priceSale} , 
-            priceRent = ${priceRent} , 
-            lat = ${lat} ,
-            lng = ${lng} , 
-            houseNo = '${house_No}' ,
-            addressId = ${subDisID} , 
-            updatedAt = '${date}' 
-        WHERE id = ${props_ID} `
+        SET title = ? , 
+            description = ? , 
+            propFor = ? , 
+            propType = ? ,
+            priceSale = ? , 
+            priceRent = ? , 
+            lat = ? ,
+            lng = ? , 
+            houseNo = ? ,
+            addressId = ? , 
+            updatedAt = ? 
+        WHERE id = ?`
+
+    valueUpdateUserSubProp = [
+        title,
+        desc,
+        ppID,
+        TypeID,
+        priceSale,
+        priceRent,
+        lat,
+        lng,
+        house_No,
+        subDisID,
+        date,
+        props_ID
+    ]
+
 
     sql_update_rooms = `
         UPDATE user_sub_prop_additionals
@@ -783,7 +830,7 @@ module.exports.updateProperty = (req,res) => {
         FROM user_sub_prop_additionals 
         WHERE propertyId = ${props_ID}
     `
-    dbConn.query(sql_update_userSubProps,(err,result)=>{
+    dbConn.query(sql_update_userSubProps,valueUpdateUserSubProp,(err,result)=>{
         if(err) err_service.errorNotification(err,'update property => main property')
         // update additional
         dbConn.query(sql_update_rooms,(err,result)=>{

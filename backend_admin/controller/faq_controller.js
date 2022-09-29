@@ -75,7 +75,26 @@ module.exports.getFAQByID = (req,res) => {
 }
 //insert new FAQ
 module.exports.insertFAQ = (req,res) => {
-    dbConn.query('INSERT INTO faqs(faqQ,faqA,category,displayStatus) VALUES(?,?,?,1)',[req.body.faq_Q,req.body.faq_A,req.body.faq_category],(err,result)=>{
+    sqlInsertFaq = `
+        INSERT INTO faqs(
+                faqQ,
+                faqA,
+                category,
+                displayStatus) 
+            VALUES(
+                ?,
+                ?,
+                ?,
+                ?)
+    `
+
+    valueInsertFaq = [
+        req.body.faq_Q,
+        req.body.faq_A,
+        req.body.faq_category,
+        1
+    ] 
+    dbConn.query(sqlInsertFaq,valueInsertFaq,(err,result)=>{
         if(err) err_service.errorNotification(err,'insertFAQ')
         res.send({
             status:true,
@@ -87,15 +106,20 @@ module.exports.insertFAQ = (req,res) => {
 module.exports.updateFAQ = (req,res) => {
     sqlUpdate = `
         UPDATE faqs 
-        SET faqQ = '${req.body.faq_Q}' , 
-            faqA = '${req.body.faq_A}' , 
-            category = ${req.body.faq_category}
-        WHERE faqId =  ${req.body.faq_id} 
+        SET faqQ = ? , 
+            faqA = ? , 
+            category = ?
+        WHERE faqId = ?
     `
 
+    valueUpdate = [
+        req.body.faq_Q,
+        req.body.faq_A,
+        req.body.faq_category,
+        req.body.faq_id]
+
     console.log(sqlUpdate);
-    dbConn.query('UPDATE faqs SET faqQ = ? , faqA = ? , category = ? WHERE faqId =  ? ',
-    [req.body.faq_Q,req.body.faq_A,req.body.faq_category,req.body.faq_id],(err,result)=>{
+    dbConn.query(sqlUpdate,valueUpdate,(err,result)=>{
         if(err) err_service.errorNotification(err,'updateFAQ')
         res.send({
             status:true,

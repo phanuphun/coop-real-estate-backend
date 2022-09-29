@@ -31,9 +31,39 @@ module.exports.signup = async (req, res) => {
                 bcrypt.hash(password,10,(err,hash)=>{
                     let decrypt_password = hash
                     // insert data
-                    dbConn.query(`INSERT INTO admin(adminUsername,adminEmail,adminPassword,adminFname,adminLname,adminPhone,adminAddress,pictureUrl,role_id)
-                    VALUES(?,?,?,?,?,?,?,?,1)`,
-                    [username, email, decrypt_password ,fname,lname,phone,address,image],(err, result) => {
+                    sqlInsertAdmin = `
+                        INSERT INTO admin(
+                                adminUsername,
+                                adminEmail,
+                                adminPassword,
+                                adminFname,
+                                adminLname,
+                                adminPhone,
+                                adminAddress,
+                                pictureUrl,
+                                role_id)
+                            VALUES(
+                                ?,
+                                ?,
+                                ?,
+                                ?,
+                                ?,
+                                ?,
+                                ?,
+                                ?,
+                                1)
+                    `
+
+                    valueINsertAdmin = [
+                        username, 
+                        email, 
+                        decrypt_password ,
+                        fname,
+                        lname,
+                        phone,
+                        address,
+                        image]
+                    dbConn.query(sqlInsertAdmin,valueINsertAdmin,(err, result) => {
                             if (err) err_service.errorNotification(err,'sign up => insert data')
                             res.send({
                                 status:true,
@@ -112,5 +142,3 @@ module.exports.newPasswordAdmin = (newPass,adminId) => {
         })
     })
 }
-
-// module.exports.newPasswordAdmin = newPasswordAdmin

@@ -88,19 +88,15 @@ module.exports.inComeChartData = (req,res) => {
                 totalDailyIncomePerDay[i] = result[i].totalDailyIncomePerDay
                 days[i] = dateAndTime.format(result[i].days,'YYYY/MM/DD')
             }
-            // get days 
-            // console.log('day => ',new Date(days[0]).getDate() +1 );
             
             dailyIncome.orderCount = orderCount
             dailyIncome.totalDailyIncomePerDay = totalDailyIncomePerDay
             dailyIncome.days = days
-            // console.log(dailyIncome.days );
 
         }
         dailyIncome.totalDailyIncome = totalDailyIncomePerDay.reduce((sum, a) => sum + a, 0)
         dailyIncome.totalDailyOrderCount = orderCount.reduce((sum, a) => sum + a, 0)
         data.dailyIncome = dailyIncome
-        // console.log(data.dailyIncome);
         let dateNow = new Date()
         oneWeeks[0] = dateAndTime.format(new Date(dateNow.setDate(dateNow.getDate())),'YYYY/MM/DD')
         for (let i = 1 ; i < 7; i++) {
@@ -108,8 +104,6 @@ module.exports.inComeChartData = (req,res) => {
         }
         oneWeeks = oneWeeks.reverse()
         for (let i = 0 , j = 0; i < oneWeeks.length ; i ++, j++) {
-            // console.log(new Date(oneWeeks[i]).getDate() + '==' + new Date(dailyIncome.days[j]).getDate())
-            // console.log(i, new Date(daily.days[i]).getDate() !== new Date(daily.oldDays[j]).getDate())
             if (new Date(oneWeeks[i]).getDate() !== new Date(dailyIncome.days[j]).getDate()){
                 dailyIncome.totalDailyIncomePerDay.splice(i,0,0);
                 j-- ; 
@@ -141,7 +135,6 @@ module.exports.inComeChartData = (req,res) => {
                 if(j < result.length){
                     if(i === (parseInt(result[j].monthNo)-1)){
                         totalMonthIncomePerMonth[i] = result[j].totalMonthIncomePerMonth
-                        // console.log(month[i]);
                         j++ ;
                     }
                 }
@@ -310,34 +303,46 @@ module.exports.addMoneyTransfer = (req,res) => {
     WHERE money_transfers.userId = ${userId}
     ORDER BY money_transfers.id DESC LIMIT 1;`
 
-    sql=`INSERT INTO money_transfers(
-                        userId,
-                        packageId,
-                        periodId,
-                        price,
-                        pictureUrl,
-                        dateTransfer,
-                        confirm)
-                    VALUES(
-                        ${userId},
-                        ${packageId},
-                        '${packagePeriod}',
-                        '${packagePrice}',
-                        '${image}',
-                        '${dateTransfer}',
-                        0);
-        `        
-        dbConn.query(sql,(err,result)=>{
-            if(err)err_service.errorNotification(err,'add money transfer')
-            dbConn.query(sqlLineNotify,(err,result)=>{
-                if(err)err_service.errorNotification(err,'get data for line ')
-                line_ct.lineNotify(result)
-            })
-            res.send({
-                status:true,
-                msg:'เพิ่มการแจ้งโอนเงินเรียบร้อย'
-            })
+    sql=`
+    INSERT INTO money_transfers(
+                userId,
+                packageId,
+                periodId,
+                price,
+                pictureUrl,
+                dateTransfer,
+                confirm)
+            VALUES(
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                ?,
+                0);
+    `    
+    
+    valueInsert = [
+        userId,
+        packageId,
+        packagePeriod,
+        packagePrice,
+        image,
+        dateTransfer,
+        0
+    ] 
+    
+    dbConn.query(sql,valueInsert,(err,result)=>{
+        if(err)err_service.errorNotification(err,'add money transfer')
+        dbConn.query(sqlLineNotify,(err,result)=>{
+            if(err)err_service.errorNotification(err,'get data for line ')
+            line_ct.lineNotify(result)
         })
+        res.send({
+            status:true,
+            msg:'เพิ่มการแจ้งโอนเงินเรียบร้อย'
+        })
+    })
 
 }
 //get all money transfer list

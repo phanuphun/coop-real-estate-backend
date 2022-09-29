@@ -330,21 +330,35 @@ module.exports.addNewMember = (req,res) => {
                         roleId,
                         subscriptionPeriodId,
                         packageExpire)
-                VALUES( '${userId}',
-                        '${userName}',
-                        '${fname}',
-                        '${lname}',
-                        '${image}',
-                        '${date}',
-                        '${date}',
-                        '${package_id}',
-                        1,
-                        2,
-                        1,
+                VALUES( ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
+                        ?,
                         ADDDATE(CURRENT_TIMESTAMP(),INTERVAL +30 DAY))
     `
 
-    dbConn.query(sqlInsertUser,(err,result)=>{
+    valueInsertUser = [
+        userId,
+        userName,
+        fname,
+        lname,
+        image,
+        date,
+        date,
+        package_id,
+        1,
+        2,
+        1
+    ] 
+
+    dbConn.query(sqlInsertUser,valueInsertUser,(err,result)=>{
         if(err)err_service.errorNotification(err,'add new member => users table')
         dbConn.query('SELECT id FROM users WHERE pictureUrl =? ',[image],(err,result)=>{
             if(err)err_service.errorNotification(err,'add new member => get id')
@@ -356,12 +370,19 @@ module.exports.addNewMember = (req,res) => {
                     phone,
                     organization)
                 VALUES(
-                    '${id}',
-                    '${email}',
-                    '${phone}',
-                    '${organization}')
+                    ?,
+                    ?,
+                    ?,
+                    ?)
             `
-            dbConn.query(sqlInsertUserDetail,(err,result)=>{
+
+            valueInsertUserDetail = [
+                id,
+                email,
+                phone,
+                organization
+            ] 
+            dbConn.query(sqlInsertUserDetail,valueInsertUserDetail,(err,result)=>{
                 if(err)err_service.errorNotification(err,'add new member => user_account_details table')
                 res.send({
                     status:true,
@@ -404,7 +425,6 @@ module.exports.updateUser = (req,res) => {
     if(image === null){
         image = ''
     }
-    // console.log(req.body);
     if(req.body.gallery.length > 0 ){
         dbConn.query('SELECT pictureUrl FROM users WHERE id = ?',[id],(err,result)=>{
             if(err) err_service.errorNotification(err,'get old picture name ')
@@ -429,27 +449,41 @@ module.exports.updateUser = (req,res) => {
         //update users
         sql_update_main = `
             UPDATE users
-            SET displayName = '${userName}' ,
-                fname = '${fname}' ,
-                lname = '${lname}' ,
-                packageId = '${package_id}' ,
-                packageExpire = '${packageExpire}',
-                updatedAt = '${date}'
-            WHERE id = '${id}'
+            SET displayName = ? ,
+                fname = ? ,
+                lname = ? ,
+                packageId = ? ,
+                packageExpire = ?,
+                updatedAt = ?
+            WHERE id = ?
             `
-            console.log(date);
-
-        dbConn.query(sql_update_main,(err,result)=>{
+        valueUpdateMain = [
+            userName,
+            fname,
+            lname,
+            package_id,
+            packageExpire,
+            date,
+            id
+        ]
+        
+        dbConn.query(sql_update_main,valueUpdateMain,(err,result)=>{
             if(err) err_service.errorNotification(err,'update user => main table')
             //update useretail
             sql_update_user = `
                 UPDATE user_account_details
-                SET email = '${email}' ,
-                    phone = '${phone}' ,
-                    organization = '${organization}'
-                WHERE id = '${userDetailId}'
+                SET email = ? ,
+                    phone = ? ,
+                    organization = ?
+                WHERE id = ?
                 `
-            dbConn.query(sql_update_user,(err,result=>{
+            valueUpdateUser = [
+                email,
+                phone,
+                organization,
+                userDetailId
+            ]
+            dbConn.query(sql_update_user,valueUpdateUser,(err,result=>{
                 if(err) err_service.errorNotification(err,'update user => sub table')
                 res.send({
                     status:true,
