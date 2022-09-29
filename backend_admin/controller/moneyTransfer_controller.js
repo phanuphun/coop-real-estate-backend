@@ -512,10 +512,92 @@ module.exports.confirmMoneyTransfer = (req,res) => {
                     // console.log(sqlUpdatePackage);
                     dbConn.query(sqlUpdatePackage,(err,result)=>{
                         if(err)err_service.errorNotification(err,'confirm money transfer => update package and expire packge in users table ')
-                        res.send({
-                            status:true,
-                            msg:'ยืนยันเรียบร้อยแล้ว'
+
+                        // disable property if new limit < new limit 
+                        sqlCheckLimitOldPackage = `
+                            SELECT 
+                                propertyLimit
+                            FROM packages
+                            WHERE id = ${oldPackage}
+                        `
+
+
+
+                        sqlCheckLimitNewPackage = `
+                            SELECT 
+                                propertyLimit
+                            FROM packages
+                            WHERE id = ${packageId}
+                        `
+
+                        dbConn.query(sqlCheckLimitOldPackage,(err,result)=>{
+                            if(err)err_service.errorNotification(err,'confirm money transfer => check liimt old package')
+                            oldLimit = result[0].propertyLimit
+                            dbConn.query(sqlCheckLimitNewPackage,(err,result)=>{
+                                if(err)err_service.errorNotification(err,'confirm money transfer => check liimt old package')
+                                newLimit = result[0].propertyLimit
+                                if(newLimit < oldLimit){
+                                    console.log('new < old ');
+
+                                    sqlGetAllPropertyIdByUser = `
+                                        SELECT 
+                                            id
+                                        FROM user_sub_props
+                                        WHERE userId = ${userId}
+                                    `
+                                    let propertyId = []
+                                    dbConn.query(sqlGetAllPropertyIdByUser,(err,result)=>{
+                                        if(err)err_service.errorNotification(err,'confirm money transfer => get all property id ')
+                                        console.log(sqlGetAllPropertyIdByUser);
+                                        console.log(result);
+                                        for(let i = 0 ; i < result.length ; i++ ){
+                                            propertyId.push(result[i].id)
+                                        }
+    
+                                        if(propertyId.length <= newLimit){
+                                            res.send({
+                                                status:true,
+                                                msg:'ยืนยันเรียบร้อยแล้ว'
+                                            })
+                                        }else{
+                                            sqlDisableAllProperty = `
+                                                UPDATE user_sub_props
+                                                SET displayStatus = 0 
+                                                WHERE userId = ${userId} 
+                                            `
+                                            dbConn.query(sqlDisableAllProperty,(err,result)=>{
+                                                if(err)err_service.errorNotification(err,'confirm money transfer => disable all property')
+
+                                                sqlEnableProperty = `
+                                                    UPDATE user_sub_props
+                                                    SET displayStatus = 1 
+                                                    WHERE id = ? 
+                                                `
+                                                for(let i = 0 ; i < newLimit ; i++ ){
+                                                    dbConn.query(sqlEnableProperty,[propertyId[i]],(err,result)=>{
+                                                        if(err)err_service.errorNotification(err,'confirm money transfer => enable property round is '+(i+1))
+                                                        if((i+1) === newLimit){
+                                                            res.send({
+                                                                status:true,
+                                                                msg:'ยืนยันเรียบร้อยแล้ว'
+                                                            })
+                                                        }
+                                                    })
+                                                }
+    
+                                            
+                                            })
+                                        }
+                                    })
+                                }else{
+                                    res.send({
+                                        status:true,
+                                        msg:'ยืนยันเรียบร้อยแล้ว'
+                                    })
+                                }
+                            })
                         })
+
                     })
                 })
             })
