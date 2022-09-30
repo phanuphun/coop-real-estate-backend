@@ -1,22 +1,31 @@
 let mysql = require('mysql2');
 
-const conn = mysql.createConnection({
+// const conn = mysql.createConnection({
 
-    // LocalHost
+//     // LocalHost
 
-    host:'127.0.0.1',
-    user:'root',
-    password:'',
-    database:'test',
-    waitForConnections: true,
+//     host:'127.0.0.1',
+//     user:'root',
+//     password:'',
+//     database:'test',
+//     waitForConnections: true,
 
-    // host:'159.223.59.238',
-    // user:'khem',
-    // password:'DeltasoftPassword',
-    // database:'deltapropertydb',
-    // port:3306,
-})
-conn.connect((err)=>{
+//     // host:'159.223.59.238',
+//     // user:'khem',
+//     // password:'DeltasoftPassword',
+//     // database:'deltapropertydb',
+//     // port:3306,
+// })
+
+const conn = mysql.createPool({
+    // connectionLimit : 10,
+    host     : '127.0.0.1',
+    user     : 'root',
+    password : '',
+    database : 'test',
+});    
+
+conn.getConnection((err)=>{
      if (err) {
         console.log('db error');
         throw err
