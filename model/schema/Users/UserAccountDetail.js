@@ -20,6 +20,9 @@ module.exports = (sequelize, Sequelize) => {
         organization: {
             type: Sequelize.STRING
         }
+    }, {
+        createdAt: false,
+        updatedAt: false
     })
     return UserAccountDetail;
 }
