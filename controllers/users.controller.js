@@ -126,8 +126,7 @@ module.exports = {
         if (bannedUser) {
           return res.send({ status: 2 , 
             message: 
-            `บัญชีของคุณถูกระงับการใช้งาน
-             You have been banned.`})
+            `ALERT.BANNED_USER`})
         }
 
         let packageExpire = await Users.findOne({

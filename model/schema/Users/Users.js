@@ -38,6 +38,9 @@ module.exports = (sequelize, Sequelize) => {
         displayStatus:{
             type: Sequelize.BOOLEAN
         }
+    }, {
+        timestamp: true
+
     })
     return Users;
 }
