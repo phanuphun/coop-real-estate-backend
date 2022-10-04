@@ -88,55 +88,165 @@ module.exports.userOverview = (req,res) => {
         })
     })
 }
-//seach user
+//search user
 module.exports.seachUser = (req,res) => {
+    console.log(req.body);
     let name = req.body.name
     let package = req.body.package
+    let userType = req.body.userType
     let limit = req.body.limit
 
     if(name !== null){
         name = `'${name}%'`
     }
-    sqlLength = `
-    SELECT users.* ,
-        users.userId
-    FROM users
-    INNER JOIN user_account_details ON users.id = user_account_details.userId
-    WHERE
-    (
-        (
-            ((CONCAT(users.fname,' ',users.lname) LIKE ${name}) OR ${name} is null)
-            OR ((CONCAT(users.fname,'',users.lname) LIKE ${name}) OR ${name} is null)
-            OR (users.lname LIKE ${name} OR ${name} is null)
-            OR (user_account_details.email LIKE  ${name} OR ${name} is null)
-            OR (user_account_details.phone LIKE  ${name} OR ${name} is null)
-            OR (users.displayName LIKE ${name} OR ${name} is null )
-        ) AND (users.packageId = ${package} OR ${package} is null)
 
-    )
-    ORDER BY users.id DESC;`
-    sql = `
-    SELECT users.* ,
-        users.userId AS userIdLine ,
-        user_account_details.*,
-        packages.name AS packageName
-    FROM users
-    INNER JOIN user_account_details ON users.id = user_account_details.userId
-    INNER JOIN packages ON packages.id = users.packageId 
-    WHERE
-    (
+    let sqlLength
+    let sql
+    if(userType !== null){
+        if(userType === 'agent'){
+            sqlLength = `
+            SELECT users.* ,
+                users.userId AS userIdLine ,
+                user_account_details.*,
+                packages.name AS packageName
+            FROM users
+            INNER JOIN user_account_details ON users.id = user_account_details.userId
+            INNER JOIN packages ON packages.id = users.packageId 
+            INNER JOIN user_sub_props ON user_sub_props.userId = users.id
+            WHERE
+            (
+                (
+                    ((CONCAT(users.fname,' ',users.lname) LIKE ${name}) OR ${name} is null)
+                    OR ((CONCAT(users.fname,'',users.lname) LIKE ${name}) OR ${name} is null)
+                    OR (users.lname LIKE ${name} OR ${name} is null)
+                    OR (user_account_details.email LIKE  ${name} OR ${name} is null)
+                    OR (user_account_details.phone LIKE  ${name} OR ${name} is null)
+                    OR (users.displayName LIKE ${name} OR ${name} is null )
+                ) AND (users.packageId = ${package} OR ${package} is null)
+    
+            )
+            GROUP BY users.id
+            ORDER BY users.id DESC`
+            sql = `
+            SELECT users.* ,
+                users.userId AS userIdLine ,
+                user_account_details.*,
+                packages.name AS packageName
+            FROM users
+            INNER JOIN user_account_details ON users.id = user_account_details.userId
+            INNER JOIN packages ON packages.id = users.packageId 
+            INNER JOIN user_sub_props ON user_sub_props.userId = users.id
+            WHERE
+            (
+                (
+                    ((CONCAT(users.fname,' ',users.lname) LIKE ${name}) OR ${name} is null)
+                    OR ((CONCAT(users.fname,'',users.lname) LIKE ${name}) OR ${name} is null)
+                    OR (users.lname LIKE ${name} OR ${name} is null)
+                    OR (user_account_details.email LIKE  ${name} OR ${name} is null)
+                    OR (user_account_details.phone LIKE  ${name} OR ${name} is null)
+                    OR (users.displayName LIKE ${name} OR ${name} is null )
+                ) AND (users.packageId = ${package} OR ${package} is null)
+        
+            )
+            GROUP BY users.id
+            ORDER BY users.id DESC
+            LIMIT ${limit.items},${limit.size} ;`
+        }else if(userType === 'user'){
+            sqlLength = `
+                SELECT users.* ,
+                    users.userId AS userIdLine ,
+                    user_account_details.*,
+                    packages.name AS packageName
+                FROM users
+                INNER JOIN user_account_details ON users.id = user_account_details.userId
+                INNER JOIN packages ON packages.id = users.packageId 
+                WHERE
+                (
+                    (
+                        ((CONCAT(users.fname,' ',users.lname) LIKE ${name}) OR ${name} is null)
+                        OR ((CONCAT(users.fname,'',users.lname) LIKE ${name}) OR ${name} is null)
+                        OR (users.lname LIKE ${name} OR ${name} is null)
+                        OR (user_account_details.email LIKE  ${name} OR ${name} is null)
+                        OR (user_account_details.phone LIKE  ${name} OR ${name} is null)
+                        OR (users.displayName LIKE ${name} OR ${name} is null )
+                    ) AND (users.packageId = ${package} OR ${package} is null)
+                    AND NOT users.id IN(
+                            SELECT 
+                                user_sub_props.userId
+                            FROM user_sub_props )
+                )
+                ORDER BY users.id DESC
+            `
+        sql = `
+        SELECT users.* ,
+            users.userId AS userIdLine ,
+            user_account_details.*,
+            packages.name AS packageName
+        FROM users
+        INNER JOIN user_account_details ON users.id = user_account_details.userId
+        INNER JOIN packages ON packages.id = users.packageId 
+        WHERE
         (
-            ((CONCAT(users.fname,' ',users.lname) LIKE ${name}) OR ${name} is null)
-            OR ((CONCAT(users.fname,'',users.lname) LIKE ${name}) OR ${name} is null)
-            OR (users.lname LIKE ${name} OR ${name} is null)
-            OR (user_account_details.email LIKE  ${name} OR ${name} is null)
-            OR (user_account_details.phone LIKE  ${name} OR ${name} is null)
-            OR (users.displayName LIKE ${name} OR ${name} is null )
-        ) AND (users.packageId = ${package} OR ${package} is null)
+            (
+                ((CONCAT(users.fname,' ',users.lname) LIKE ${name}) OR ${name} is null)
+                OR ((CONCAT(users.fname,'',users.lname) LIKE ${name}) OR ${name} is null)
+                OR (users.lname LIKE ${name} OR ${name} is null)
+                OR (user_account_details.email LIKE  ${name} OR ${name} is null)
+                OR (user_account_details.phone LIKE  ${name} OR ${name} is null)
+                OR (users.displayName LIKE ${name} OR ${name} is null )
+            ) AND (users.packageId = ${package} OR ${package} is null)
+            AND NOT users.id IN(
+                    SELECT 
+                        user_sub_props.userId
+                    FROM user_sub_props )
+        )
+        ORDER BY users.id DESC
+        LIMIT ${limit.items},${limit.size} ;`
+        }
+        
+    }else{
+        sqlLength = `
+        SELECT users.* ,
+            users.userId
+        FROM users
+        INNER JOIN user_account_details ON users.id = user_account_details.userId
+        WHERE
+        (
+            (
+                ((CONCAT(users.fname,' ',users.lname) LIKE ${name}) OR ${name} is null)
+                OR ((CONCAT(users.fname,'',users.lname) LIKE ${name}) OR ${name} is null)
+                OR (users.lname LIKE ${name} OR ${name} is null)
+                OR (user_account_details.email LIKE  ${name} OR ${name} is null)
+                OR (user_account_details.phone LIKE  ${name} OR ${name} is null)
+                OR (users.displayName LIKE ${name} OR ${name} is null )
+            ) AND (users.packageId = ${package} OR ${package} is null)
+    
+        )
+        ORDER BY users.id DESC;`
+        sql = `
+        SELECT users.* ,
+            users.userId AS userIdLine ,
+            user_account_details.*,
+            packages.name AS packageName
+        FROM users
+        INNER JOIN user_account_details ON users.id = user_account_details.userId
+        INNER JOIN packages ON packages.id = users.packageId 
+        WHERE
+        (
+            (
+                ((CONCAT(users.fname,' ',users.lname) LIKE ${name}) OR ${name} is null)
+                OR ((CONCAT(users.fname,'',users.lname) LIKE ${name}) OR ${name} is null)
+                OR (users.lname LIKE ${name} OR ${name} is null)
+                OR (user_account_details.email LIKE  ${name} OR ${name} is null)
+                OR (user_account_details.phone LIKE  ${name} OR ${name} is null)
+                OR (users.displayName LIKE ${name} OR ${name} is null )
+            ) AND (users.packageId = ${package} OR ${package} is null)
+    
+        )
+        ORDER BY users.id DESC
+        LIMIT ${limit.items},${limit.size} ;`
+    }
 
-    )
-    ORDER BY users.id DESC
-    LIMIT ${limit.items},${limit.size} ;`
 
     dbConn.query(sqlLength,(err,result)=>{
         if(err)err_service.errorNotification(err,'seach user length')
@@ -357,7 +467,6 @@ module.exports.addNewMember = (req,res) => {
         2,
         1
     ] 
-
     dbConn.query(sqlInsertUser,valueInsertUser,(err,result)=>{
         if(err)err_service.errorNotification(err,'add new member => users table')
         dbConn.query('SELECT id FROM users WHERE pictureUrl =? ',[image],(err,result)=>{
