@@ -25,6 +25,7 @@ const {
   CHANNEL_ACCESS_TOKEN,
   CHANNEL_SECRET,
   NGROK,
+  USER_PATH
 } = require("../config/config");
 const fs = require("fs");
 const path = require("path");
@@ -297,7 +298,7 @@ const submitProp = async (req, res) => {
       }).format(prop.priceRent)}/เดือน`;
     }
     prop.address = `${req.body.houseNo}, ${subDist}, ${dist}, ${prov}, ${zipCode}`;
-    prop.link = `${NGROK}/properties/${propertyId.id}`;
+    prop.link = `${USER_PATH}/properties/${propertyId.id}`;
     prop.gallery = `${NGROK}/images/properties/${req.body.gallery[0]}`;
     const flex = createFlexMessage(prop);
     const multiCast = {

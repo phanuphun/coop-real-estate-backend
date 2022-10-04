@@ -3,6 +3,7 @@ const {
   CHANNEL_ACCESS_TOKEN,
   CHANNEL_SECRET,
   NGROK,
+  USER_PATH
 } = require("../config/config");
 const {
   UserSubProp,
@@ -115,7 +116,7 @@ const webhook = async (req, res) => {
         let contents = [];
         prop.forEach((res) => {
           res.address = `${res.houseNo}, ${res.subDist_name}, ${res.dist_name}, ${res.prov_name}, ${res.zipcode}`;
-          res.link = `${NGROK}/properties/${res.id}`;
+          res.link = `${USER_PATH}/properties/${res.id}`;
 
           if (res.purpose_id == 1) {
             res.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceSale)}`;
@@ -222,7 +223,7 @@ const webhook = async (req, res) => {
         let contents = [];
         prop.forEach((res) => {
           res.address = `${res.houseNo}, ${res.subDist_name}, ${res.dist_name}, ${res.prov_name}, ${res.zipcode}`;
-          res.link = `${NGROK}/properties/${res.id}`;
+          res.link = `${USER_CLIENT_PATH}/properties/${res.id}`;
 
           res.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceRent)}/เดือน`;
 
@@ -324,7 +325,7 @@ const webhook = async (req, res) => {
         let contents = [];
         prop.forEach((res) => {
           res.address = `${res.houseNo}, ${res.subDist_name}, ${res.dist_name}, ${res.prov_name}, ${res.zipcode}`;
-          res.link = `${NGROK}/properties/${res.id}`;
+          res.link = `${USER_CLIENT_PATH}/properties/${res.id}`;
 
           res.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceSale)}`;
 
@@ -438,7 +439,7 @@ const webhook = async (req, res) => {
           let contents = [];
           prop.forEach((res) => {
             res.address = `${res.houseNo}, ${res.subDist_name}, ${res.dist_name}, ${res.prov_name}, ${res.zipcode}`;
-            res.link = `${NGROK}/properties/${res.id}`;
+            res.link = `${USER_CLIENT_PATH}/properties/${res.id}`;
 
             if (res.purpose_id == 1) {
               res.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceSale)}`;
@@ -653,7 +654,7 @@ const webhook = async (req, res) => {
           let contents = [];
           property.forEach((res) => {
             res.address = `${res.houseNo}, ${res.subDist_name}, ${res.dist_name}, ${res.prov_name}, ${res.zipcode}`;
-            res.link = `${NGROK}/properties/${res.id}`;
+            res.link = `${USER_CLIENT_PATH}/properties/${res.id}`;
 
             if (res.purpose_id == 1) {
               res.price = `${new Intl.NumberFormat('th-TH', { style: 'currency', currency: 'THB' }).format(res.priceSale)}`;
