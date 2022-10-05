@@ -39,6 +39,9 @@ module.exports = (sequelize, Sequelize) => {
         addressId:{
             type: Sequelize.INTEGER
         },
+        saleStatus:{
+            type: Sequelize.INTEGER(1)
+        },
         displayStatus: {
             type: Sequelize.BOOLEAN
         }

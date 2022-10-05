@@ -41,6 +41,8 @@ router.post('/clearAllCompare', validator.verify, controller.clearAllCompare)
 
 router.post('/userChangePropertyStatus/:propertyId', validator.verify, controller.userChangePropertyStatus)
 
+router.post('/userChangeSaleStatus/:propertyId', validator.verify, controller.userChangeSaleStatus)
+
 
 
 module.exports = router

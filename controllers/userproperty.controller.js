@@ -177,6 +177,7 @@ const submitProp = async (req, res) => {
       lng: req.body.lng,
       houseNo: req.body.houseNo,
       addressId: req.body.addressId,
+      saleStatus: 0,
       displayStatus: 1,
     });
 
@@ -573,6 +574,7 @@ const getUserProperties = async (req, res) => {
                  user_sub_props.description as description,
                  user_sub_props.priceSale as priceSale,
                  user_sub_props.priceRent as priceRent,
+                 user_sub_props.saleStatus as saleStatus,
                  
                  user_sub_props.lat as lat,
                  user_sub_props.lng as lng,
@@ -833,6 +835,7 @@ const getUserPropertyById = async (req, res) => {
               user_sub_props.priceSale as priceSale,
               user_sub_props.priceRent as priceRent,
               user_sub_props.displayStatus as propertyStatus,
+              user_sub_props.saleStatus as saleStatus,
               
               user_sub_props.lat as lat,
               user_sub_props.lng as lng,
@@ -1084,6 +1087,7 @@ const getUserPropertiesHome = async (req, res) => {
                  user_sub_props.description as description,
                  user_sub_props.priceSale as priceSale,
                  user_sub_props.priceRent as priceRent,
+                 user_sub_props.saleStatus as saleStatus,
                  
                  user_sub_props.lat as lat,
                  user_sub_props.lng as lng,
@@ -1336,6 +1340,7 @@ const getPropertiesbyAgent = async (req, res) => {
                  user_sub_props.description as description,
                  user_sub_props.priceSale as priceSale,
                  user_sub_props.priceRent as priceRent,
+                 user_sub_props.saleStatus as saleStatus,
                  
                  user_sub_props.lat as lat,
                  user_sub_props.lng as lng,
@@ -1500,7 +1505,7 @@ const getMyproperties = async (req, res) => {
       where: {
         userId: userId,
       },
-      attributes: ["id", "title", "createdAt", "displayStatus"],
+      attributes: ["id", "title", "createdAt", "displayStatus", "saleStatus"],
       include: [
         {
           model: UserSubPropGallery,
@@ -1521,6 +1526,7 @@ const getMyproperties = async (req, res) => {
           .path
       }`;
       temp.displayStatus = prop.displayStatus;
+      temp.saleStatus = prop.saleStatus;
       data.push(temp);
     });
     res.send({ data: data });
@@ -2005,6 +2011,28 @@ const userChangePropertyStatus = async (req, res) => {
   }
 };
 
+  const userChangeSaleStatus = async(req, res) => {
+    try {
+      const userId = res.locals.userId
+      const saleStatusId = req.body.saleStatusId
+      const propertyId = req.params.propertyId
+
+      const change = await UserSubProp.update({
+        saleStatus: saleStatusId
+      },{
+        where: {
+          id: propertyId,
+          userId: userId
+        }
+      })
+
+      return res.send({ status: 1, message: 'ALERT.CHANGE_SALE_STATUS_SUCCESS' })
+
+    } catch (err) {
+      res.status(500).send(err.message)
+    }
+  }
+
 module.exports = {
   getUserProperties: getUserProperties,
   getUserPropertiesHome: getUserPropertiesHome,
@@ -2023,4 +2051,5 @@ module.exports = {
   checkUserInfoBeforeSubmit: checkUserInfoBeforeSubmit,
   checkUserOwnProperty: checkUserOwnProperty,
   userChangePropertyStatus: userChangePropertyStatus,
+  userChangeSaleStatus: userChangeSaleStatus
 };

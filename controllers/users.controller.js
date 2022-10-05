@@ -269,7 +269,39 @@ module.exports = {
         },
       });
 
-      res.send({ data: data, count: count });
+      const availableCount = await UserSubProp.count({
+        where: {
+          userId: req.params.id,
+          displayStatus: true || 1,
+          saleStatus: 0
+        },
+      })
+
+      const bookCount = await UserSubProp.count({
+        where: {
+          userId: req.params.id,
+          displayStatus: true || 1,
+          saleStatus: 1
+        },
+      })
+
+      const soldCount = await UserSubProp.count({
+        where: {
+          userId: req.params.id,
+          displayStatus: true || 1,
+          saleStatus: 2
+        },
+      })
+
+      const rentCount = await UserSubProp.count({
+        where: {
+          userId: req.params.id,
+          displayStatus: true || 1,
+          saleStatus: 3
+        },
+      })
+
+      res.send({ data: data, count: count, availableCount: availableCount, bookCount: bookCount, soldCount: soldCount, rentCount: rentCount });
     } catch (err) {
       res.status(500).send(err.message);
     }
