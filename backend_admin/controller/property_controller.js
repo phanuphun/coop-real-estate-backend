@@ -97,7 +97,7 @@ module.exports.propertyOverview = (req,res)=>{
         })
     })
 }
-//search property table bar
+//search property 
 module.exports.searchProperty = (req,res) => {
     // console.log(req.body);
     let title = req.body.title
@@ -106,6 +106,7 @@ module.exports.searchProperty = (req,res) => {
     let province = req.body.province
     let districts = req.body.districts
     let subDistrict = req.body.subDistrict
+    let saleStatus = req.body.saleStatus
     let limit = req.body.limit
     // SQL Set String
     // title set sql value
@@ -131,6 +132,8 @@ module.exports.searchProperty = (req,res) => {
         AND (provinces.id = ${province} OR ${province} is null)
         AND (districts.id = ${districts} OR ${districts} is null)
         AND (subdistricts.id = ${subDistrict} OR ${subDistrict} is null)
+        AND (user_sub_props.saleStatus = ${saleStatus} OR ${saleStatus} is null) 
+
     )
     GROUP BY user_sub_prop_galleries.propertyId
     `
@@ -168,6 +171,7 @@ module.exports.searchProperty = (req,res) => {
         AND (provinces.id = ${province} OR ${province} is null)
         AND (districts.id = ${districts} OR ${districts} is null)
         AND (subdistricts.id = ${subDistrict} OR ${subDistrict} is null)
+        AND (user_sub_props.saleStatus = ${saleStatus} OR ${saleStatus} is null) 
     )
     GROUP BY user_sub_prop_galleries.propertyId
     ORDER BY user_sub_props.id DESC
@@ -242,10 +246,12 @@ module.exports.addNewProperty = (req,res)=>{
             lng,
             houseNo,
             addressId,
+            saleStatus,
             createdAt,
             updatedAt,
             displayStatus) 
         VALUES(
+            ?,
             ?,
             ?,
             ?,
@@ -273,6 +279,7 @@ module.exports.addNewProperty = (req,res)=>{
         lng,
         houseNO,
         Subdistricts_sl,
+        0,
         date,
         date,
         1
@@ -477,10 +484,11 @@ module.exports.getPropertyByID = (req, res) => {
         realData.info.house_type_ID = result[0].propType;
         realData.info.priceSale = result[0].priceSale;
         realData.info.priceRent = result[0].priceRent;
+        realData.info.saleStatus = result[0].saleStatus;
 
         //address
         realData.address.houseNo = result[0].houseNo;
-        realData.address.ID_subDistricts = subDistrictsID
+        realData.address.ID_subDistricts = subDistrictsID;
 
         //additional
         // realData.additional.gallery = result[0].gallery;
@@ -596,6 +604,13 @@ module.exports.getPropertyByID = (req, res) => {
                                                                 })
                                                             }
 
+                                                        }else{
+                                                            realData.features = null
+                                                            res.send({
+                                                                status:true,
+                                                                realData:realData,
+                                                                imagePath:process.env.IMAGE_PATH_PROPERTY
+                                                            })
                                                         }
                                                     })
                                                 })
@@ -753,6 +768,7 @@ module.exports.updateProperty = (req,res) => {
     let TypeID = req.body.props_type_ID
     let priceSale = req.body.priseSale
     let priceRent = req.body.priceRent
+    let saleStatus = req.body.saleStatus
 
     //address
     let subDisID = req.body.subDistricts_ID
@@ -795,6 +811,7 @@ module.exports.updateProperty = (req,res) => {
             lng = ? , 
             houseNo = ? ,
             addressId = ? , 
+            saleStatus = ? ,
             updatedAt = ? 
         WHERE id = ?`
 
@@ -809,6 +826,7 @@ module.exports.updateProperty = (req,res) => {
         lng,
         house_No,
         subDisID,
+        saleStatus,
         date,
         props_ID
     ]
