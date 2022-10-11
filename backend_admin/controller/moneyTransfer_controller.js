@@ -99,16 +99,25 @@ module.exports.inComeChartData = (req,res) => {
         data.dailyIncome = dailyIncome
         let dateNow = new Date()
         oneWeeks[0] = dateAndTime.format(new Date(dateNow.setDate(dateNow.getDate())),'YYYY/MM/DD')
+
         for (let i = 1 ; i < 7; i++) {
             oneWeeks.push(dateAndTime.format(new Date(dateNow.setDate(dateNow.getDate()-1)),'YYYY/MM/DD'))
         }
         oneWeeks = oneWeeks.reverse()
-        for (let i = 0 , j = 0; i < oneWeeks.length ; i ++, j++) {
-            if (new Date(oneWeeks[i]).getDate() !== new Date(dailyIncome.days[j]).getDate()){
-                dailyIncome.totalDailyIncomePerDay.splice(i,0,0);
-                j-- ; 
+        if(days.length !== 0){
+            for (let i = 0 , j = 0; i < oneWeeks.length ; i ++, j++) {
+                if (new Date(oneWeeks[i]).getDate() !== new Date(dailyIncome.days[j]).getDate()){
+                    dailyIncome.totalDailyIncomePerDay.splice(i,0,0);
+                    j-- ; 
+                }
             }
+        }else{
+            for(let i = 0 ; i < 7 ; i++ ){
+                totalDailyIncomePerDay.push(0)
+            }
+            dailyIncome.totalDailyIncomePerDay = totalDailyIncomePerDay
         }
+
 
         dailyIncome.days = oneWeeks
         
@@ -154,17 +163,29 @@ module.exports.inComeChartData = (req,res) => {
                 let years = []
                 let totalYearIncomePerYear = []
                 let orderCount = []
-                for(let i = 0 ; i < result.length ; i++ ){
-                    orderCount[i] = result[i].orderCount;
-                    years[i] = result[i].years;
-                    totalYearIncomePerYear[i] = result[i].totalYearIncomePerYear;
-                }
-                if(years.length < 5 ){
+                if(result.length !== 0){
+                    for(let i = 0 ; i < result.length ; i++ ){
+                        orderCount[i] = result[i].orderCount;
+                        years[i] = result[i].years;
+                        totalYearIncomePerYear[i] = result[i].totalYearIncomePerYear;
+                    }
+                    if(years.length < 5 ){
+                        for(let i = (years.length)-1 ; i < 4 ; i++ ){
+                            years.unshift(parseInt(years[0])-1)
+                            totalYearIncomePerYear.unshift(0)
+                        }
+                    }
+                }else{
+                    const todaysDate = new Date()
+                    const currentYear = todaysDate.getFullYear()
+                    years.push(currentYear)
+                    totalYearIncomePerYear.push(0)
                     for(let i = (years.length)-1 ; i < 4 ; i++ ){
                         years.unshift(parseInt(years[0])-1)
                         totalYearIncomePerYear.unshift(0)
                     }
                 }
+
                 years.length = 5 
                 totalYearIncomePerYear.length = 5
                 yearIncome.totalYearIncome = totalYearIncomePerYear.reduce((sum, a) => sum + a, 0)
@@ -179,6 +200,7 @@ module.exports.inComeChartData = (req,res) => {
                     let totalAllIncome = result[0].totalIncome
                     
                     data.totalAllIncome = totalAllIncome
+                    console.log('data => ',data.yearIncome);
                     res.send({
                         status:true,
                         data:data,
