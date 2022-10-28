@@ -1,11 +1,12 @@
 # Backend Deltaproperty
 
-**Client**
+## โฟลเดอร์
+**ฝั่ง User**
 - config 
 - controller 
 - model
 - services
 
-**Admin**
+**ฝั่ง Admin**
 - backend_admin
 - service
