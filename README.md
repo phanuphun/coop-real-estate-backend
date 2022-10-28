@@ -1,5 +1,3 @@
-# Backend Deltaproperty
-
 ## โฟลเดอร์
 **ฝั่ง User**
 - config 
