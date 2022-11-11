@@ -1,10 +1,10 @@
-## โฟลเดอร์
-**ฝั่ง User**
+## Folders
+**Client**
 - config 
 - controller 
 - model
 - services
 
-**ฝั่ง Admin**
+**Admin**
 - backend_admin
 - service
