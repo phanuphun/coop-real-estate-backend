@@ -24,7 +24,7 @@
   - [/multer.js](https://github.com/parnuphun/DeltaProperty_Backend/blob/main/service/multer.js) (อัพโหลดรูปฝั่ง admin)
   - [/auth_service.js](https://github.com/parnuphun/DeltaProperty_Backend/blob/main/service/auth_service.js) (Check req token)
 - Note
-  - แก้การส่ง Email => [/backend_admin/controller/other_controller.js](https://github.com/parnuphun/DeltaProperty_Backend/blob/main/backend_admin/controller/other_controller.js) ที่ function replyContactUs บรรทัดที่ 239
+  - แก้การส่ง Email => [other_controller.js](https://github.com/parnuphun/DeltaProperty_Backend/blob/main/backend_admin/controller/other_controller.js) ที่ function replyContactUs บรรทัดที่ 239
   - สร้าง [App password](https://myaccount.google.com/apppasswords)
  ```ruby
     var transporter = nodemailer.createTransport({
