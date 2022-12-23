@@ -1,12 +1,12 @@
 ## Tools
-- [Multer js (อัพโหลดรูป)](https://www.npmjs.com/package/multer)
+- [Multer js](https://www.npmjs.com/package/multer)
 - [CORS](https://www.npmjs.com/package/cors)
-- [Bcrypt (เข้ารหัส Password)](https://www.npmjs.com/package/bcrypt)
+- [Bcrypt](https://www.npmjs.com/package/bcrypt)
 - [Line Bot SDK](https://github.com/line/line-bot-sdk-nodejs)
-- [Date and Time (Format Date)](https://www.npmjs.com/package/date-and-time)
-- [JWT (สร้าง Token)](https://www.npmjs.com/package/jsonwebtoken)
-- [Sequelize (MySQL ORM)](https://sequelize.org/)
-- [Nodemailer (ส่ง Email)](https://nodemailer.com/about/)
+- [Date and Time](https://www.npmjs.com/package/date-and-time)
+- [JWT](https://www.npmjs.com/package/jsonwebtoken)
+- [Sequelize](https://sequelize.org/)
+- [Nodemailer](https://nodemailer.com/about/)
 
 ## Folders
 **Client**
@@ -23,9 +23,10 @@
 - [/service](https://github.com/parnuphun/DeltaProperty_Backend/tree/main/service) (เติม s ของ client)
   - [/multer.js](https://github.com/parnuphun/DeltaProperty_Backend/blob/main/service/multer.js) (อัพโหลดรูปฝั่ง admin)
   - [/auth_service.js](https://github.com/parnuphun/DeltaProperty_Backend/blob/main/service/auth_service.js) (Check req token)
-- Note
-  - แก้การส่ง Email => [other_controller.js](https://github.com/parnuphun/DeltaProperty_Backend/blob/main/backend_admin/controller/other_controller.js) ที่ function replyContactUs บรรทัดที่ 239
-  - สร้าง [App password](https://myaccount.google.com/apppasswords)
+
+
+## Note
+  - [Email](https://github.com/parnuphun/DeltaProperty_Backend/blob/main/backend_admin/controller/other_controller.js)
  ```ruby
     var transporter = nodemailer.createTransport({
         service: 'gmail',
